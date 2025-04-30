@@ -1,34 +1,25 @@
 package delivery
 
 import (
-	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 
-type homeHandler struct{}
+type Server struct {
+}
 
-func Serve2(){
+func New() Server {
+	return Server{}
+}
+
+func(s Server) Serve() {
 	router := mux.NewRouter()
 
-    // Register the route
-    home := homeHandler{}
+	router.HandleFunc("/health-check", health_check).Methods("GET")
+	router.HandleFunc("/api/v1/signup", s.ServeHTTP).Methods("POST")
 
-    router.HandleFunc("/api/v1/signup", home.ServeHTTP).Methods("POST")
-
-    // Start the server
-    http.ListenAndServe(":8010", router)
+	// Start the server
+	http.ListenAndServe(":8010", router)
 }
-
-func (h *homeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("This is my home page"))
-	str,err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Print(err)
-	}
-	fmt.Println(str)
-}
-

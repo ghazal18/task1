@@ -16,6 +16,9 @@ func main() {
 	}
 	Postdb := repository.New(cfg)
 	Postdb.Register()
-	delivery.Serve2()
+	serve := delivery.New()
+	serve.Serve()
+
+	
 
 }
