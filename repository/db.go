@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/go-pg/pg/v10"
-	"task1/entity"
+	// "task1/entity"
 
 )
 
@@ -29,22 +29,22 @@ func New(config Config) *PostgresDB {
 }
 
 func (d *PostgresDB) Register() {
-	user1 := &entity.User{
-	//	ID:       9,
-		Email:    "sdfwewer@gmail",
-		Password: "345123",
-	}
-	_, err := d.db.Model(user1).Insert()
-	if err != nil {
-		panic(err)
-	}
+	// user1 := &entity.User{
+	// //	ID:       9,
+	// 	Email:    "sdfwewer@gmail",
+	// 	Password: "345123",
+	// }
+	// _, err := d.db.Model(user1).Insert()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	_, err = d.db.Model(&entity.User{
-	//	ID:       7,
-		Email:    "wefewew@gmail",
-		Password: "12334",
-	}).Insert()
-	if err != nil {
-		panic(err)
-	}
+	// _, err = d.db.Model(&entity.User{
+	// //	ID:       7,
+	// 	Email:    "wefewew@gmail",
+	// 	Password: "12334",
+	// }).Insert()
+	// if err != nil {
+	// 	panic(err)
+	// }
 }
