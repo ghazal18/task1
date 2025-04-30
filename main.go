@@ -1,10 +1,8 @@
 package main
 
 import (
-	//"fmt"
 	"task1/Repository"
 	"task1/delivery"
-	// "task/pg_test"
 )
 
 func main() {
