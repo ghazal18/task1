@@ -9,11 +9,11 @@ import (
 	"net/http"
 )
 
-func (h Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	data,err := io.ReadAll(r.Body)
+func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Print(err)
-	}	
+	}
 
 	var uReq userservice.LoginRequest
 	err = json.Unmarshal(data, &uReq)
@@ -23,8 +23,6 @@ func (h Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		))
 
 	}
-
-
-
+	s.userSvc.Register(uReq)
 
 }

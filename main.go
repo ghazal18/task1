@@ -3,6 +3,7 @@ package main
 import (
 	"task1/Repository"
 	"task1/delivery"
+	"task1/service/userservice"
 )
 
 func main() {
@@ -12,9 +13,10 @@ func main() {
 		Password: "123456",
 		Database: "postgres",
 	}
-	Postdb := repository.New(cfg)
-	Postdb.Register()
-	serve := delivery.New()
+	repo := repository.New(cfg)
+	serve := delivery.New(userservice.New(repo))
+
+	
 	serve.Serve()
 
 	

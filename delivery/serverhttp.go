@@ -2,19 +2,20 @@ package delivery
 
 import (
 	"net/http"
+	"task1/service/userservice"
 
 	"github.com/gorilla/mux"
 )
 
-
 type Server struct {
+	userSvc userservice.Service
 }
 
-func New() Server {
-	return Server{}
+func New(userSvc userservice.Service) Server {
+	return Server{userSvc:userSvc}
 }
 
-func(s Server) Serve() {
+func (s Server) Serve() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/health-check", health_check).Methods("GET")
