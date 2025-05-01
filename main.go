@@ -1,7 +1,7 @@
 package main
 
 import (
-	"task1/Repository"
+	repository "task1/Repository"
 	"task1/controller"
 	"task1/delivery"
 	"task1/service/userservice"

@@ -21,10 +21,10 @@ func New() *PostgresDB {
 	return &PostgresDB{db: db}
 }
 
-func (d *PostgresDB) Register(u entity.User) error {
+func (d *PostgresDB) Register(u entity.User) (entity.User, error) {
 	_, err := d.db.Model(&u).Insert()
 	fmt.Println(err)
-	return nil
+	return u, nil
 
 }
 

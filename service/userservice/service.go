@@ -6,7 +6,7 @@ import (
 )
 
 type Repository interface {
-	Register(u entity.User) error
+	Register(u entity.User) (entity.User, error)
 	GetUser(u entity.User) (entity.User, bool, error)
 }
 
@@ -19,24 +19,42 @@ type Service struct {
 	auth AuthGenerator
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 func New(repo Repository, auth AuthGenerator) Service {
 	return Service{repo: repo, auth: auth}
 }
 
-func (s Service) Register(req LoginRequest) {
+type RegisterRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type RegisterResponse struct {
+	ID    int    `json: "id"`
+	Email string `json:"email"`
+}
+
+func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
+	var resp RegisterResponse
 
 	user := entity.User{
 		Email:    req.Email,
 		Password: req.Password,
 	}
 
-	s.repo.Register(user)
+	user,_= s.repo.Register(user)
+	resp = RegisterResponse{
+		ID: 0,
+		Email: user.Email,
 
+	}
+	return resp,nil
+
+
+}
+
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (s Service) Login(req LoginRequest) {
@@ -45,11 +63,9 @@ func (s Service) Login(req LoginRequest) {
 		Email:    req.Email,
 		Password: req.Password,
 	}
-	fmt.Println("userservice.service.go ", user)
 
 	user, _, _ = s.repo.GetUser(user)
-	fmt.Println("userservice.service.go ", user)
-	str, _ := s.auth.CreateAccessToken(user)
-	fmt.Println(str)
+	token, _ := s.auth.CreateAccessToken(user)
+	fmt.Println(token)
 
 }

@@ -15,7 +15,7 @@ func (s Server) UserSignup(w http.ResponseWriter, r *http.Request) {
 		fmt.Print(err)
 	}
 
-	var uReq userservice.LoginRequest
+	var uReq userservice.RegisterRequest
 	err = json.Unmarshal(data, &uReq)
 	if err != nil {
 		w.Write([]byte(
@@ -23,7 +23,10 @@ func (s Server) UserSignup(w http.ResponseWriter, r *http.Request) {
 		))
 
 	}
-	s.userSvc.Register(uReq)
+	user,err := s.userSvc.Register(uReq)
+	jsonUser,err:= json.Marshal(user)
+
+	w.Write(jsonUser)
 
 }
 
