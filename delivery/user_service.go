@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s Server) UserSignup(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Print(err)
@@ -24,5 +24,24 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	}
 	s.userSvc.Register(uReq)
+
+}
+
+
+func (s Server) UserLogin(w http.ResponseWriter, r *http.Request) {
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	var uReq userservice.LoginRequest
+	err = json.Unmarshal(data, &uReq)
+	if err != nil {
+		w.Write([]byte(
+			fmt.Sprintf(`{"error": "%s"}`, err.Error()),
+		))
+
+	}
+	s.userSvc.Login(uReq)
 
 }
