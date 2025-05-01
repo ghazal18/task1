@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"net/http"
+//	"task1/controller"
 	"task1/service/userservice"
 
 	"github.com/gorilla/mux"
@@ -9,6 +10,7 @@ import (
 
 type Server struct {
 	userSvc userservice.Service
+//	controller controller.Service
 }
 
 func New(userSvc userservice.Service) Server {

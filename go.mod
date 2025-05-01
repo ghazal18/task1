@@ -2,7 +2,10 @@ module task1
 
 go 1.23.1
 
-require github.com/go-pg/pg/v10 v10.14.0
+require (
+	github.com/go-pg/pg/v10 v10.14.0
+	github.com/golang-jwt/jwt/v4 v4.5.2
+)
 
 require (
 	github.com/go-pg/zerochecker v0.2.0 // indirect
