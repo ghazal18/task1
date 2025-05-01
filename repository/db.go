@@ -38,3 +38,18 @@ func (d *PostgresDB) GetUser(u entity.User) (entity.User, bool, error) {
 	fmt.Println(res.RowsReturned(), res.Model(), u, err)
 	return u, true, nil
 }
+
+func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, bool, error) {
+
+	projectQuery := `Insert into projects(owner_id,name,company,description,social_links) values (?,?,?,?,?);`
+	projectOwner := p.OwnerID
+	projectName := p.Name
+	projectCompany := p.Company
+	projectDesc := p.Description
+	projectSocial := p.SocialLinks
+
+	res, err := d.db.Query(&p, projectQuery, projectOwner, projectName, projectCompany, projectDesc, projectSocial)
+	fmt.Println(res.RowsReturned(), res.Model(), p, err)
+	fmt.Println("this is p " ,p)
+	return p, true, nil
+}

@@ -8,6 +8,7 @@ import (
 type Repository interface {
 	Register(u entity.User) (entity.User, error)
 	GetUser(u entity.User) (entity.User, bool, error)
+	CreateProject(p entity.Project) (entity.Project, bool, error)
 }
 
 type AuthGenerator interface {
@@ -41,14 +42,12 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 		Password: req.Password,
 	}
 
-	user,_= s.repo.Register(user)
+	user, _ = s.repo.Register(user)
 	resp = RegisterResponse{
-		ID: 0,
+		ID:    0,
 		Email: user.Email,
-
 	}
-	return resp,nil
-
+	return resp, nil
 
 }
 
@@ -68,4 +67,23 @@ func (s Service) Login(req LoginRequest) {
 	token, _ := s.auth.CreateAccessToken(user)
 	fmt.Println(token)
 
+}
+
+type NewProjectRequest struct {
+	OwnerID     int    `json:"owner_id"`
+	Name        string `json:"name"`
+	Company     string `json:"company"`
+	Description string `json:"description"`
+	SocialLinks string `json:"social_links"`
+}
+
+func (s Service) NewProject(req NewProjectRequest) {
+	pr := entity.Project{
+		Name:        req.Name,
+		Company:     req.Company,
+		OwnerID:     req.OwnerID,
+		Description: req.Description,
+		SocialLinks: req.SocialLinks,
+	}
+	s.repo.CreateProject(pr)
 }

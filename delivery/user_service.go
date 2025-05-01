@@ -1,12 +1,12 @@
 package delivery
 
 import (
-	"encoding/json"
-	"task1/service/userservice"
-
-	"fmt"
 	"io"
+	"fmt"
 	"net/http"
+	"encoding/json"
+	
+	"task1/service/userservice"
 )
 
 func (s Server) UserSignup(w http.ResponseWriter, r *http.Request) {
@@ -23,13 +23,12 @@ func (s Server) UserSignup(w http.ResponseWriter, r *http.Request) {
 		))
 
 	}
-	user,err := s.userSvc.Register(uReq)
-	jsonUser,err:= json.Marshal(user)
+	user, err := s.userSvc.Register(uReq)
+	jsonUser, err := json.Marshal(user)
 
 	w.Write(jsonUser)
 
 }
-
 
 func (s Server) UserLogin(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
@@ -47,4 +46,22 @@ func (s Server) UserLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	s.userSvc.Login(uReq)
 
+}
+
+func (s Server) NewProject(w http.ResponseWriter, r *http.Request) {
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	var Req userservice.NewProjectRequest
+	err = json.Unmarshal(data, &Req)
+	if err != nil {
+		w.Write([]byte(
+			fmt.Sprintf(`{"error": "%s"}`, err.Error()),
+		))
+
+	}
+	s.userSvc.NewProject(Req)
 }

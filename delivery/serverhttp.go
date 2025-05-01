@@ -22,7 +22,7 @@ func (s Server) Serve() {
 
 	router.HandleFunc("/health-check", health_check).Methods("GET")
 	router.HandleFunc("/api/v1/signup", s.UserSignup).Methods("POST")
-	router.HandleFunc("/api/v1/login", s.UserLogin).Methods("POST")
+	router.HandleFunc("/api/v1/auth/project/new", s.NewProject).Methods("POST")
 	
 
 
