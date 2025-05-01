@@ -28,7 +28,7 @@ func (d *PostgresDB) Register(u entity.User) error {
 
 }
 
-func (d *PostgresDB) GetUser(u entity.User) {
+func (d *PostgresDB) GetUser(u entity.User) (entity.User, bool, error) {
 
 	userQuery := `select * from users where email=? and password_hash=?;`
 	userEmail := u.Email
@@ -36,4 +36,5 @@ func (d *PostgresDB) GetUser(u entity.User) {
 	userID := u.ID
 	res, err := d.db.Query(&u, userQuery, userEmail, userPass, userID)
 	fmt.Println(res.RowsReturned(), res.Model(), u, err)
+	return u, true, nil
 }

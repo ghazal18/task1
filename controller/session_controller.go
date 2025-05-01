@@ -12,7 +12,6 @@ import (
 type Config struct {
 	SignKey              string
 	AccessExpirationTime time.Duration
-	AccessSubject        string
 }
 
 type Service struct {
@@ -25,17 +24,18 @@ func New(cfg Config) Service {
 	}
 }
 
+
 func (s Service) CreateAccessToken(user entity.User) (string, error) {
 
-	return s.createToken(user.ID, s.config.AccessSubject, s.config.AccessExpirationTime)
+	return s.createToken(user.ID, s.config.AccessExpirationTime)
 
 }
 
-func (s Service) createToken(userID int, subject string, expireDuration time.Duration) (string, error) {
+func (s Service) createToken(userID int, expireDuration time.Duration) (string, error) {
 
 	claims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   subject,
+			Subject:   "ac",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expireDuration)),
 		},
 		UserID: userID,

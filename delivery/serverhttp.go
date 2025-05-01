@@ -2,19 +2,19 @@ package delivery
 
 import (
 	"net/http"
-//	"task1/controller"
+	"task1/controller"
 	"task1/service/userservice"
 
 	"github.com/gorilla/mux"
 )
 
 type Server struct {
-	userSvc userservice.Service
-//	controller controller.Service
+	userSvc    userservice.Service
+	controller controller.Service
 }
 
-func New(userSvc userservice.Service) Server {
-	return Server{userSvc:userSvc}
+func New(userSvc userservice.Service, control controller.Service) Server {
+	return Server{userSvc: userSvc, controller: control}
 }
 
 func (s Server) Serve() {

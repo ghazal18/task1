@@ -1,14 +1,22 @@
 package userservice
 
-import "task1/entity"
+import (
+	"fmt"
+	"task1/entity"
+)
 
 type Repository interface {
 	Register(u entity.User) error
-	GetUser(u entity.User)
+	GetUser(u entity.User) (entity.User, bool, error)
+}
+
+type AuthGenerator interface {
+	CreateAccessToken(user entity.User) (string, error)
 }
 
 type Service struct {
 	repo Repository
+	auth AuthGenerator
 }
 
 type LoginRequest struct {
@@ -16,8 +24,8 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func New(repo Repository) Service {
-	return Service{repo: repo}
+func New(repo Repository, auth AuthGenerator) Service {
+	return Service{repo: repo, auth: auth}
 }
 
 func (s Service) Register(req LoginRequest) {
@@ -37,7 +45,11 @@ func (s Service) Login(req LoginRequest) {
 		Email:    req.Email,
 		Password: req.Password,
 	}
+	fmt.Println("userservice.service.go ", user)
 
-	s.repo.GetUser(user)
+	user, _, _ = s.repo.GetUser(user)
+	fmt.Println("userservice.service.go ", user)
+	str, _ := s.auth.CreateAccessToken(user)
+	fmt.Println(str)
 
 }
