@@ -1,11 +1,11 @@
 package delivery
 
 import (
-	"io"
-	"fmt"
-	"net/http"
 	"encoding/json"
-	
+	"fmt"
+	"io"
+	"net/http"
+
 	"task1/service/userservice"
 )
 
@@ -49,6 +49,20 @@ func (s Server) UserLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) NewProject(w http.ResponseWriter, r *http.Request) {
+
+	authToken := r.Header.Get("Authorization")
+
+	_, err := s.controller.VerifyToken(authToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	// resp, err := s.userSvc.NewProject(userservice.NewProjectRequest{UserID: claims.UserID})
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusForbidden)
+
+	// }
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {

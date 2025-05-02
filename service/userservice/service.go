@@ -77,7 +77,11 @@ type NewProjectRequest struct {
 	SocialLinks string `json:"social_links"`
 }
 
-func (s Service) NewProject(req NewProjectRequest) {
+type NewProjectResponse struct {
+	Name string `json:"name"`
+}
+
+func (s Service) NewProject(req NewProjectRequest)  (NewProjectResponse, error) {
 	pr := entity.Project{
 		Name:        req.Name,
 		Company:     req.Company,
@@ -86,4 +90,5 @@ func (s Service) NewProject(req NewProjectRequest) {
 		SocialLinks: req.SocialLinks,
 	}
 	s.repo.CreateProject(pr)
+	return NewProjectResponse{Name : "created"},nil
 }
