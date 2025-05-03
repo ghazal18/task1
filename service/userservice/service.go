@@ -17,13 +17,19 @@ type AuthGenerator interface {
 	CreateAccessToken(user entity.User) (string, error)
 }
 
+type ACLGenerator interface {
+	CanViewProject(userID, projectID int) bool
+	CanEditProject(userID, projectID int) bool
+}
+
 type Service struct {
 	repo Repository
 	auth AuthGenerator
+	acl  ACLGenerator
 }
 
-func New(repo Repository, auth AuthGenerator) Service {
-	return Service{repo: repo, auth: auth}
+func New(repo Repository, auth AuthGenerator, acl ACLGenerator) Service {
+	return Service{repo: repo, auth: auth, acl: acl}
 }
 
 type RegisterRequest struct {

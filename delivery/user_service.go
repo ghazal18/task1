@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"task1/service/userservice"
 )
@@ -52,18 +53,11 @@ func (s Server) NewProject(w http.ResponseWriter, r *http.Request) {
 
 	authToken := r.Header.Get("Authorization")
 
-	claim, err := s.controller.VerifyToken(authToken)
+	_, err := s.controller.VerifyToken(authToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
-	println("looookkkk ", claim.UserID)
-
-	// resp, err := s.userSvc.NewProject(userservice.NewProjectRequest{UserID: claims.UserID})
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusForbidden)
-
-	// }
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -117,22 +111,25 @@ func (s Server) GetOtherProjects(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (s Server) GetProjectByID(w http.ResponseWriter, r *http.Request) {
+	authToken := r.Header.Get("Authorization")
 
+	claim, err := s.controller.VerifyToken(authToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
 
+	projectIdStr := r.URL.Query().Get("project_id")
+	projectId, err := strconv.Atoi(projectIdStr)
+	println("claim.UserID, projectId", claim.UserID, projectId)
 
+	can := s.acl.CanViewProject(claim.UserID, projectId)
 
+	if !can {
+		fmt.Println(can)
+		http.Error(w, err.Error(), http.StatusForbidden)
+		
+	}
 
-// func (s Server) GetProjectByID(w http.ResponseWriter, r *http.Request) {
-// 	authToken := r.Header.Get("Authorization")
-
-// 	claim, err := s.controller.VerifyToken(authToken)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusForbidden)
-// 		return
-// 	}
-
-// 	projectId := r.URL.Query().Get("project_id")
-
-	
-
-// }
+}

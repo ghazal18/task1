@@ -1,9 +1,10 @@
 package main
 
 import (
-	repository "task1/Repository"
+	"task1/Repository"
 	"task1/controller"
 	"task1/delivery"
+	"task1/repository/acl"
 	"task1/service/userservice"
 	"time"
 )
@@ -12,9 +13,14 @@ func main() {
 
 	repo := repository.New()
 	userControl := controller.New(createConfig())
-	usersvc := userservice.New(repo, userControl)
+	acl := acl.Service{
+		Repo :repo,
+		Podb: repo,
+	}
 
-	serve := delivery.New(usersvc, userControl)
+	usersvc := userservice.New(repo, userControl,acl)
+
+	serve := delivery.New(usersvc, userControl,acl)
 	serve.Serve()
 
 }
