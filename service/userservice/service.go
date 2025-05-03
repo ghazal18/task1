@@ -10,6 +10,7 @@ type Repository interface {
 	GetUser(u entity.User) (entity.User, bool, error)
 	CreateProject(p entity.Project) (entity.Project, bool, error)
 	AllProject(uID int) (p []entity.Project, b bool, e error)
+	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
 }
 
 type AuthGenerator interface {
@@ -109,6 +110,14 @@ type AllProjectResponse struct {
 func (s Service) GetAllProject(id int) ([]entity.Project, error) {
 
 	project, _, _ := s.repo.AllProject(id)
+
+	return project, nil
+
+}
+
+func (s Service) GetAllOthersProject(id int) ([]entity.Project, error) {
+
+	project, _, _ := s.repo.AllOtherProject(id)
 
 	return project, nil
 

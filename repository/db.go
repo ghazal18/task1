@@ -66,3 +66,22 @@ WHERE p.owner_id = ? OR pm.user_id = ?;`
 
 	return p, true, nil
 }
+
+
+func (d *PostgresDB) AllOtherProject(uID int) (p []entity.Project, b bool, e error) {
+
+	projectQuery := `SELECT p.*
+FROM projects p
+WHERE p.owner_id != ?
+  AND p.id NOT IN (
+    SELECT project_id
+    FROM project_members
+    WHERE user_id = ?
+);
+`
+	userId := uID
+
+	d.db.Query(&p, projectQuery, userId, userId)
+
+	return p, true, nil
+}

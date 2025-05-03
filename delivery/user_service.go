@@ -98,3 +98,41 @@ func (s Server) GetProjects(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonProject)
 
 }
+
+func (s Server) GetOtherProjects(w http.ResponseWriter, r *http.Request) {
+	authToken := r.Header.Get("Authorization")
+
+	claim, err := s.controller.VerifyToken(authToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+	println(claim.UserID)
+
+	p, err := s.userSvc.GetAllOthersProject(claim.UserID)
+
+	jsonProject, err := json.Marshal(p)
+
+	w.Write(jsonProject)
+
+}
+
+
+
+
+
+
+// func (s Server) GetProjectByID(w http.ResponseWriter, r *http.Request) {
+// 	authToken := r.Header.Get("Authorization")
+
+// 	claim, err := s.controller.VerifyToken(authToken)
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusForbidden)
+// 		return
+// 	}
+
+// 	projectId := r.URL.Query().Get("project_id")
+
+	
+
+// }

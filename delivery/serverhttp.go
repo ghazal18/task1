@@ -25,6 +25,9 @@ func (s Server) Serve() {
 	router.HandleFunc("/api/v1/login", s.UserLogin).Methods("POST")
 	router.HandleFunc("/api/v1/auth/project/new", s.NewProject).Methods("POST")
 	router.HandleFunc("/api/v1/auth/project/all", s.GetProjects).Methods("GET")
+    router.HandleFunc("/api/v1/auth/project/other/all", s.GetOtherProjects).Methods("GET")
+//router.HandleFunc("/api/v1/auth/project", s.GetProjectByID).Methods("GET")
+
 	
 
 
