@@ -9,6 +9,7 @@ type Repository interface {
 	Register(u entity.User) (entity.User, error)
 	GetUser(u entity.User) (entity.User, bool, error)
 	CreateProject(p entity.Project) (entity.Project, bool, error)
+	AllProject(uID int) (p []entity.Project, b bool, e error)
 }
 
 type AuthGenerator interface {
@@ -81,7 +82,7 @@ type NewProjectResponse struct {
 	Name string `json:"name"`
 }
 
-func (s Service) NewProject(req NewProjectRequest)  (NewProjectResponse, error) {
+func (s Service) NewProject(req NewProjectRequest) (NewProjectResponse, error) {
 	pr := entity.Project{
 		Name:        req.Name,
 		Company:     req.Company,
@@ -90,5 +91,25 @@ func (s Service) NewProject(req NewProjectRequest)  (NewProjectResponse, error) 
 		SocialLinks: req.SocialLinks,
 	}
 	s.repo.CreateProject(pr)
-	return NewProjectResponse{Name : "created"},nil
+	return NewProjectResponse{Name: "created"}, nil
+}
+
+type AllProjectRequest struct {
+	ID int `json:"id"`
+}
+
+type AllProjectResponse struct {
+	OwnerID     int    `json:"owner_id"`
+	Name        string `json:"name"`
+	Company     string `json:"company"`
+	Description string `json:"description"`
+	SocialLinks string `json:"social_links"`
+}
+
+func (s Service) GetAllProject(id int) ([]entity.Project, error) {
+
+	project, _, _ := s.repo.AllProject(id)
+
+	return project, nil
+
 }

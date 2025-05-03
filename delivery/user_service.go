@@ -52,11 +52,12 @@ func (s Server) NewProject(w http.ResponseWriter, r *http.Request) {
 
 	authToken := r.Header.Get("Authorization")
 
-	_, err := s.controller.VerifyToken(authToken)
+	claim, err := s.controller.VerifyToken(authToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
+	println("looookkkk ", claim.UserID)
 
 	// resp, err := s.userSvc.NewProject(userservice.NewProjectRequest{UserID: claims.UserID})
 	// if err != nil {
@@ -78,4 +79,22 @@ func (s Server) NewProject(w http.ResponseWriter, r *http.Request) {
 
 	}
 	s.userSvc.NewProject(Req)
+}
+
+func (s Server) GetProjects(w http.ResponseWriter, r *http.Request) {
+	authToken := r.Header.Get("Authorization")
+
+	claim, err := s.controller.VerifyToken(authToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+	println(claim.UserID)
+
+	p, err := s.userSvc.GetAllProject(claim.UserID)
+
+	jsonProject, err := json.Marshal(p)
+
+	w.Write(jsonProject)
+
 }

@@ -1,4 +1,4 @@
-package repository 
+package repository
 
 import (
 	"fmt"
@@ -50,6 +50,19 @@ func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, bool, erro
 
 	res, err := d.db.Query(&p, projectQuery, projectOwner, projectName, projectCompany, projectDesc, projectSocial)
 	fmt.Println(res.RowsReturned(), res.Model(), p, err)
-	fmt.Println("this is p " ,p)
+	fmt.Println("this is p ", p)
+	return p, true, nil
+}
+
+func (d *PostgresDB) AllProject(uID int) (p []entity.Project, b bool, e error) {
+
+	projectQuery := `SELECT DISTINCT p.*
+FROM projects p
+LEFT JOIN project_members pm ON p.id = pm.project_id
+WHERE p.owner_id = ? OR pm.user_id = ?;`
+	userId := uID
+
+	d.db.Query(&p, projectQuery, userId, userId)
+
 	return p, true, nil
 }
