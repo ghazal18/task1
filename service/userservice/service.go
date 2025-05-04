@@ -13,6 +13,8 @@ type Repository interface {
 	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
 	FindProjectByID(pID int) (p entity.Project, b bool, e error)
 	DeleteProjectByID(pID int) (p entity.Project, b bool, e error)
+	UpdateProjectByID(pID string,update map[string]interface{}) 
+	JoinProjectByID(pID ,uID string)
 }
 
 type AuthGenerator interface {
@@ -146,4 +148,25 @@ func (s Service) DeleteProjectByID(id int) (entity.Project, error) {
 
 	return project, nil
 
+}
+
+func (s Service) JoinProjectByID(pID,uID string)  {
+
+	s.repo.JoinProjectByID(pID,uID)
+
+	
+
+}
+
+
+func (s Service) PutProjectByID(id string,update map[string]interface{})  error{
+	return nil
+}
+
+type UpdateProjectRequest struct {
+	OwnerID     int    `json:"owner_id"`
+	Name        string `json:"name"`
+	Company     string `json:"company"`
+	Description string `json:"description"`
+	SocialLinks string `json:"social_links"`
 }

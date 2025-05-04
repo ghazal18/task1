@@ -138,7 +138,6 @@ func (s Server) GetProjectByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
 	authToken := r.Header.Get("Authorization")
 
@@ -160,7 +159,7 @@ func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
 
 	}
 	p, err := s.userSvc.DeleteProjectByID(projectId)
-	fmt.Println("dude",p)
+	fmt.Println("dude", p)
 
 	jsonProject, err := json.Marshal(p)
 
@@ -168,6 +167,21 @@ func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (s Server) PutProjectByID(w http.ResponseWriter, r *http.Request) {
 
 }
+func (s Server) JoinOtherProject(w http.ResponseWriter, r *http.Request) {
 
+	authToken := r.Header.Get("Authorization")
+
+	claim, err := s.controller.VerifyToken(authToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	projectIdStr := r.URL.Query().Get("project_id")
+
+	s.userSvc.JoinProjectByID(projectIdStr, strconv.Itoa(claim.UserID))
+
+}

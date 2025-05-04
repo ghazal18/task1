@@ -103,6 +103,20 @@ func (d *PostgresDB) DeleteProjectByID(pID int) (p entity.Project, b bool, e err
 	return p, true, nil
 }
 
+func (d *PostgresDB) UpdateProjectByID(pID string, update map[string]interface{}) {
+	
+
+}
+func (d *PostgresDB) JoinProjectByID(pID ,uID string) {
+	var pm entity.ProjectMembers
+
+	projectMemberQuery := ` insert into project_members(project_id,user_id) values (?,?)`
+
+	d.DB.Query(&pm, projectMemberQuery, pID,uID)
+
+
+}
+
 func (d *PostgresDB) IsOwner(userID, projectID int) (b bool) {
 	var p entity.Project
 
@@ -134,6 +148,3 @@ func (d *PostgresDB) IsMember(userID, projectID int) (b bool) {
 	}
 	return false
 }
-
-
-
