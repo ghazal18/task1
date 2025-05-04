@@ -129,7 +129,11 @@ func (s Server) GetProjectByID(w http.ResponseWriter, r *http.Request) {
 	if !can {
 		fmt.Println(can)
 		http.Error(w, err.Error(), http.StatusForbidden)
-		
+
 	}
+	p, err := s.userSvc.GetProjectByID(projectId)
+	jsonProject, err := json.Marshal(p)
+
+	w.Write(jsonProject)
 
 }
