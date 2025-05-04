@@ -12,6 +12,7 @@ type Repository interface {
 	AllProject(uID int) (p []entity.Project, b bool, e error)
 	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
 	FindProjectByID(pID int) (p entity.Project, b bool, e error)
+	DeleteProjectByID(pID int) (p entity.Project, b bool, e error)
 }
 
 type AuthGenerator interface {
@@ -134,6 +135,14 @@ func (s Service) GetAllOthersProject(id int) ([]entity.Project, error) {
 func (s Service) GetProjectByID(id int) (entity.Project, error) {
 
 	project, _, _ := s.repo.FindProjectByID(id)
+
+	return project, nil
+
+}
+
+func (s Service) DeleteProjectByID(id int) (entity.Project, error) {
+
+	project, _, _ := s.repo.DeleteProjectByID(id)
 
 	return project, nil
 

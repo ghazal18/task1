@@ -137,3 +137,37 @@ func (s Server) GetProjectByID(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonProject)
 
 }
+
+
+func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
+	authToken := r.Header.Get("Authorization")
+
+	claim, err := s.controller.VerifyToken(authToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	projectIdStr := r.URL.Query().Get("project_id")
+	projectId, err := strconv.Atoi(projectIdStr)
+	println("claim.UserID, projectId", claim.UserID, projectId)
+
+	can := s.acl.CanEditProject(claim.UserID, projectId)
+
+	if !can {
+		fmt.Println(can)
+		http.Error(w, err.Error(), http.StatusForbidden)
+
+	}
+	p, err := s.userSvc.DeleteProjectByID(projectId)
+	fmt.Println("dude",p)
+
+	jsonProject, err := json.Marshal(p)
+
+	w.Write(jsonProject)
+
+}
+
+
+}
+

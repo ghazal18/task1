@@ -28,6 +28,8 @@ func (s Server) Serve() {
 	router.HandleFunc("/api/v1/auth/project/all", s.GetProjects).Methods("GET")
 	router.HandleFunc("/api/v1/auth/project/other/all", s.GetOtherProjects).Methods("GET")
 	router.HandleFunc("/api/v1/auth/project", s.GetProjectByID).Methods("GET")
+	router.HandleFunc("/api/v1/auth/project", s.DeleteProjectByID).Methods("DELETE")
+	router.HandleFunc("/api/v1/auth/project", s.PutProjectByID).Methods("PUT")
 
 	// Start the server
 	http.ListenAndServe(":8010", router)

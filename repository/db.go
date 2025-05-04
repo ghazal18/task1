@@ -94,6 +94,15 @@ func (d *PostgresDB) FindProjectByID(pID int) (p entity.Project, b bool, e error
 	return p, true, nil
 }
 
+func (d *PostgresDB) DeleteProjectByID(pID int) (p entity.Project, b bool, e error) {
+
+	projectQuery := `DELETE FROM projects WHERE id = ?;`
+
+	d.DB.Query(&p, projectQuery, pID)
+
+	return p, true, nil
+}
+
 func (d *PostgresDB) IsOwner(userID, projectID int) (b bool) {
 	var p entity.Project
 
