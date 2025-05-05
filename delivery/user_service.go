@@ -22,13 +22,22 @@ func (s Server) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 	}
+	if err, fieldErrors := s.validator.ValidateRegisterRequest(req); err != nil {
+		errormasage, err := json.Marshal(fieldErrors)
+		if err != nil {
+			fmt.Errorf("can't marshall error")
+		}
+
+		http.Error(w, string(errormasage), http.StatusBadRequest)
+		return
+	}
 	user, err := s.userSvc.SignUpService(req)
 	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
-		
+
 	}
 	jsonUser, err := json.Marshal(user)
-	if err!=nil {
+	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 	}
 

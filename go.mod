@@ -3,9 +3,12 @@ module task1
 go 1.23.1
 
 require (
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-pg/pg/v10 v10.14.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 )
+
+require github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
 
 require (
 	github.com/go-pg/zerochecker v0.2.0 // indirect

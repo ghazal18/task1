@@ -6,6 +6,7 @@ import (
 	"task1/delivery"
 	"task1/repository/acl"
 	"task1/service/userservice"
+	uservalidator "task1/validator/user_validator"
 	"time"
 )
 
@@ -14,13 +15,14 @@ func main() {
 	repo := repository.New()
 	userControl := controller.New(createConfig())
 	acl := acl.Service{
-		Repo :repo,
+		Repo: repo,
 		Podb: repo,
 	}
 
-	usersvc := userservice.New(repo, userControl,acl)
+	usersvc := userservice.New(repo, userControl, acl)
+	uservalid := uservalidator.New()
 
-	serve := delivery.New(usersvc, userControl,acl)
+	serve := delivery.New(usersvc, userControl, acl, uservalid)
 	serve.Serve()
 
 }

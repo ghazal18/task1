@@ -22,6 +22,8 @@ func New() *PostgresDB {
 	return &PostgresDB{DB: db}
 }
 
+
+
 func (d *PostgresDB) Register(u entity.User) (entity.User, error) {
 	_, err := d.DB.Model(&u).Insert()
 	fmt.Println(err)

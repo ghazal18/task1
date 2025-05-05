@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"task1/controller"
 	"task1/service/userservice"
+	uservalidator "task1/validator/user_validator"
 
 	"github.com/gorilla/mux"
 )
@@ -12,10 +13,14 @@ type Server struct {
 	userSvc    userservice.Service
 	controller controller.Service
 	acl        userservice.ACLGenerator
+	validator  uservalidator.Validator
 }
 
-func New(userSvc userservice.Service, control controller.Service, acl userservice.ACLGenerator) Server {
-	return Server{userSvc: userSvc, controller: control, acl: acl}
+func New(userSvc userservice.Service, control controller.Service, acl userservice.ACLGenerator, validator uservalidator.Validator) Server {
+	return Server{userSvc: userSvc,
+		controller: control,
+		acl:        acl,
+		validator:  validator}
 }
 
 func (s Server) Serve() {
