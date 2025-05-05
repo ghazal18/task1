@@ -13,7 +13,7 @@ type Repository interface {
 	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
 	FindProjectByID(pID int) (p entity.Project, b bool, e error)
 	DeleteProjectByID(pID int) (p entity.Project, b bool, e error)
-	UpdateProjectByID(pID string,update map[string]interface{}) 
+	UpdateProjectByID(pID string,p entity.Project) 
 	JoinProjectByID(pID ,uID string)
 }
 
@@ -153,11 +153,12 @@ func (s Service) DeleteProjectByID(id int) (entity.Project, error) {
 func (s Service) JoinProjectByID(pID,uID string)  {
 
 	s.repo.JoinProjectByID(pID,uID)
-
+}
+func(s Service)UpdateProjectByID(pID string, p entity.Project){
 	
+	s.repo.UpdateProjectByID(pID,p)
 
 }
-
 
 func (s Service) PutProjectByID(id string,update map[string]interface{})  error{
 	return nil

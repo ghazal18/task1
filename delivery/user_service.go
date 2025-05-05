@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"task1/entity"
 	"task1/service/userservice"
 )
 
@@ -167,7 +168,46 @@ func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
 func (s Server) PutProjectByID(w http.ResponseWriter, r *http.Request) {
+	/*
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	var uReq entity.Project
+	err = json.Unmarshal(data, &uReq)
+	if err != nil {
+		w.Write([]byte(
+			fmt.Sprintf(`{"error": "%s"}`, err.Error()),
+		))
+
+	}
+	fmt.Println("this is the requesti object",uReq)
+	projectIdStr := r.URL.Query().Get("project_id")
+	s.userSvc.UpdateProjectByID(projectIdStr,uReq)
+	*/
+
+	var input map[string]interface{}
+    if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+        http.Error(w, "Invalid input", http.StatusBadRequest)
+        return
+    }
+	
+	jsonData, err := json.Marshal(input)
+	if err != nil {
+		panic(err)
+	}
+
+	// Convert JSON to struct
+	var p entity.Project
+	err = json.Unmarshal(jsonData, &p)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(p)
+
 
 }
 func (s Server) JoinOtherProject(w http.ResponseWriter, r *http.Request) {

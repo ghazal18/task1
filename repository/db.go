@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"strconv"
 	"task1/entity"
 
 	"github.com/go-pg/pg/v10"
@@ -103,8 +104,35 @@ func (d *PostgresDB) DeleteProjectByID(pID int) (p entity.Project, b bool, e err
 	return p, true, nil
 }
 
-func (d *PostgresDB) UpdateProjectByID(pID string, update map[string]interface{}) {
+func (d *PostgresDB) UpdateProjectByID(pID string, p entity.Project) {
 	
+	columns := []string{}
+
+	id,_:=strconv.Atoi(pID)
+
+	project := entity.Project{
+		ID: id,
+		Name: p.Name,
+		Company: p.Company,
+		Description: p.Description,
+		SocialLinks: p.SocialLinks,
+	}
+	
+	if p.Name!="" {
+		columns = append(columns, "name")
+	}
+	if p.Company!="" {
+		columns = append(columns, "company")
+	}
+	if p.Description!= "" {
+		columns = append(columns, "description")
+	}
+	if p.SocialLinks!="" {
+		columns = append(columns, "social_links")
+	}
+	fmt.Println("p,columns",p,columns)
+	d.DB.Model(&project).Column(columns...).WherePK().Returning("*").Update()
+	fmt.Println(project)
 
 }
 func (d *PostgresDB) JoinProjectByID(pID ,uID string) {
