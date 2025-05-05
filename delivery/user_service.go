@@ -31,7 +31,7 @@ func (s Server) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, string(errormasage), http.StatusBadRequest)
 		return
 	}
-	user, err := s.userSvc.SignUpService(req)
+	user, err := s.userSvc.SignUp(req)
 	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 
@@ -45,21 +45,32 @@ func (s Server) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s Server) UserLogin(w http.ResponseWriter, r *http.Request) {
+func (s Server) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Print(err)
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+		return
 	}
 
-	var uReq userservice.LoginRequest
-	err = json.Unmarshal(data, &uReq)
+	var req userservice.LoginRequest
+	err = json.Unmarshal(data, &req)
 	if err != nil {
-		w.Write([]byte(
-			fmt.Sprintf(`{"error": "%s"}`, err.Error()),
-		))
+		http.Error(w, "Bad request - Go away!", http.StatusBadRequest)
+		return
 
 	}
-	s.userSvc.Login(uReq)
+	resp, err := s.userSvc.Login(req)
+	if err != nil {
+		http.Error(w, "BadRequest", http.StatusBadRequest)
+
+	}
+
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+	}
+
+	w.Write(jsonResp)
 
 }
 

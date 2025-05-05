@@ -36,10 +36,15 @@ func (d *PostgresDB) GetUser(u entity.User) (entity.User, bool, error) {
 	userQuery := `select * from users where email=? and password_hash=?;`
 	userEmail := u.Email
 	userPass := u.Password
-	userID := u.ID
-	res, err := d.DB.Query(&u, userQuery, userEmail, userPass, userID)
-	fmt.Println(res.RowsReturned(), res.Model(), u, err)
-	return u, true, nil
+	_, err := d.DB.Query(&u, userQuery, userEmail, userPass)
+	if err!=nil {
+		fmt.Errorf("Something unexpected happend")
+	}
+	if u.ID == 0{
+		return u, false, nil
+	}else{
+		return u, true, nil
+	}
 }
 
 func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, bool, error) {

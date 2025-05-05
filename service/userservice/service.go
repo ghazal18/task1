@@ -1,6 +1,8 @@
 package userservice
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"task1/entity"
 )
@@ -13,8 +15,8 @@ type Repository interface {
 	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
 	FindProjectByID(pID int) (p entity.Project, b bool, e error)
 	DeleteProjectByID(pID int) (p entity.Project, b bool, e error)
-	UpdateProjectByID(pID string,p entity.Project) 
-	JoinProjectByID(pID ,uID string)
+	UpdateProjectByID(pID string, p entity.Project)
+	JoinProjectByID(pID, uID string)
 }
 
 type AuthGenerator interface {
@@ -36,6 +38,10 @@ func New(repo Repository, auth AuthGenerator, acl ACLGenerator) Service {
 	return Service{repo: repo, auth: auth, acl: acl}
 }
 
+type Token struct {
+	AccessToken string `json:"access_token"`
+}
+
 type SignUpRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -46,7 +52,7 @@ type SignUpResponse struct {
 	Email string `json:"email"`
 }
 
-func (s Service) SignUpService(req SignUpRequest) (SignUpResponse, error) {
+func (s Service) SignUp(req SignUpRequest) (SignUpResponse, error) {
 	var resp SignUpResponse
 
 	user := entity.User{
@@ -68,16 +74,46 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func (s Service) Login(req LoginRequest) {
+type LoginResponse struct {
+	User   entity.User `json:"user"`
+	Tokens Token       `json:"tokens"`
+}
+
+func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 
 	user := entity.User{
 		Email:    req.Email,
 		Password: req.Password,
 	}
 
-	user, _, _ = s.repo.GetUser(user)
-	token, _ := s.auth.CreateAccessToken(user)
-	fmt.Println(token)
+
+	user, exist, err := s.repo.GetUser(user)
+	if err != nil {
+		return LoginResponse{}, fmt.Errorf("something unexpected happend")
+	}
+	if !exist {
+		return LoginResponse{}, fmt.Errorf("username or password isn't correct")
+	}
+	//if user.Password != getMD5Hash(req.Password) {
+	if user.Password != req.Password {
+		return LoginResponse{}, fmt.Errorf("username or password isn't correct")
+	}
+
+	accessToken, err := s.auth.CreateAccessToken(user)
+	if err != nil {
+		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
+	}
+
+	return LoginResponse{
+		User: entity.User{
+			ID:       user.ID,
+			Email:    user.Email,
+			Password: user.Password,
+		},
+		Tokens: Token{
+			AccessToken: accessToken,
+		},
+	}, nil
 
 }
 
@@ -133,7 +169,6 @@ func (s Service) GetAllOthersProject(id int) ([]entity.Project, error) {
 
 }
 
-
 func (s Service) GetProjectByID(id int) (entity.Project, error) {
 
 	project, _, _ := s.repo.FindProjectByID(id)
@@ -150,17 +185,17 @@ func (s Service) DeleteProjectByID(id int) (entity.Project, error) {
 
 }
 
-func (s Service) JoinProjectByID(pID,uID string)  {
+func (s Service) JoinProjectByID(pID, uID string) {
 
-	s.repo.JoinProjectByID(pID,uID)
+	s.repo.JoinProjectByID(pID, uID)
 }
-func(s Service)UpdateProjectByID(pID string, p entity.Project){
-	
-	s.repo.UpdateProjectByID(pID,p)
+func (s Service) UpdateProjectByID(pID string, p entity.Project) {
+
+	s.repo.UpdateProjectByID(pID, p)
 
 }
 
-func (s Service) PutProjectByID(id string,update map[string]interface{})  error{
+func (s Service) PutProjectByID(id string, update map[string]interface{}) error {
 	return nil
 }
 
@@ -170,4 +205,9 @@ type UpdateProjectRequest struct {
 	Company     string `json:"company"`
 	Description string `json:"description"`
 	SocialLinks string `json:"social_links"`
+}
+
+func getMD5Hash(text string) string {
+	hash := md5.Sum([]byte(text))
+	return hex.EncodeToString(hash[:])
 }
