@@ -36,18 +36,18 @@ func New(repo Repository, auth AuthGenerator, acl ACLGenerator) Service {
 	return Service{repo: repo, auth: auth, acl: acl}
 }
 
-type RegisterRequest struct {
+type SignUpRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-type RegisterResponse struct {
+type SignUpResponse struct {
 	ID    int    `json: "id"`
 	Email string `json:"email"`
 }
 
-func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
-	var resp RegisterResponse
+func (s Service) SignUpService(req SignUpRequest) (SignUpResponse, error) {
+	var resp SignUpResponse
 
 	user := entity.User{
 		Email:    req.Email,
@@ -55,8 +55,8 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	}
 
 	user, _ = s.repo.Register(user)
-	resp = RegisterResponse{
-		ID:    0,
+	resp = SignUpResponse{
+		ID:    user.ID,
 		Email: user.Email,
 	}
 	return resp, nil

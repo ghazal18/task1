@@ -11,22 +11,26 @@ import (
 	"task1/service/userservice"
 )
 
-func (s Server) UserSignup(w http.ResponseWriter, r *http.Request) {
+func (s Server) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Print(err)
+		http.Error(w, "Bad request - Go away!", http.StatusBadRequest)
 	}
 
-	var uReq userservice.RegisterRequest
-	err = json.Unmarshal(data, &uReq)
+	var req userservice.SignUpRequest
+	err = json.Unmarshal(data, &req)
 	if err != nil {
-		w.Write([]byte(
-			fmt.Sprintf(`{"error": "%s"}`, err.Error()),
-		))
-
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
 	}
-	user, err := s.userSvc.Register(uReq)
+	user, err := s.userSvc.SignUpService(req)
+	if err != nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+		
+	}
 	jsonUser, err := json.Marshal(user)
+	if err!=nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+	}
 
 	w.Write(jsonUser)
 
@@ -168,33 +172,32 @@ func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func (s Server) PutProjectByID(w http.ResponseWriter, r *http.Request) {
 	/*
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		fmt.Print(err)
-	}
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			fmt.Print(err)
+		}
 
-	var uReq entity.Project
-	err = json.Unmarshal(data, &uReq)
-	if err != nil {
-		w.Write([]byte(
-			fmt.Sprintf(`{"error": "%s"}`, err.Error()),
-		))
+		var uReq entity.Project
+		err = json.Unmarshal(data, &uReq)
+		if err != nil {
+			w.Write([]byte(
+				fmt.Sprintf(`{"error": "%s"}`, err.Error()),
+			))
 
-	}
-	fmt.Println("this is the requesti object",uReq)
-	projectIdStr := r.URL.Query().Get("project_id")
-	s.userSvc.UpdateProjectByID(projectIdStr,uReq)
+		}
+		fmt.Println("this is the requesti object",uReq)
+		projectIdStr := r.URL.Query().Get("project_id")
+		s.userSvc.UpdateProjectByID(projectIdStr,uReq)
 	*/
 
 	var input map[string]interface{}
-    if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-        http.Error(w, "Invalid input", http.StatusBadRequest)
-        return
-    }
-	
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
 	jsonData, err := json.Marshal(input)
 	if err != nil {
 		panic(err)
@@ -207,7 +210,6 @@ func (s Server) PutProjectByID(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	fmt.Println(p)
-
 
 }
 func (s Server) JoinOtherProject(w http.ResponseWriter, r *http.Request) {
