@@ -88,7 +88,9 @@ func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Print(err)
 	}
 
-	var Req userservice.NewProjectRequest
+	Req := userservice.NewProjectRequest{
+		ID: claim.UserID,
+	}
 	err = json.Unmarshal(data, &Req)
 	if err != nil {
 		w.Write([]byte(
@@ -96,6 +98,7 @@ func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 		))
 
 	}
+
 	resp, err := s.userSvc.NewProject(Req, claim.UserID)
 	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
@@ -119,7 +122,11 @@ func (s Server) GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p,exist, err := s.userSvc.GetAllProject(claim.UserID)
+	req := userservice.AllProjectRequest{
+		ID: claim.UserID,
+	}
+
+	p, exist, err := s.userSvc.GetAllProject(req)
 	if !exist {
 		noProject := "You should create or join project first"
 		w.Write([]byte(noProject))
@@ -146,9 +153,16 @@ func (s Server) GetOtherProjectHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
-	println(claim.UserID)
+	req := userservice.AllOtherProjectRequest{
+		ID: claim.UserID,
+	}
 
-	p, err := s.userSvc.GetAllOthersProject(claim.UserID)
+	p, exist, err := s.userSvc.GetAllOthersProject(req)
+	if !exist {
+		noProject := "You should create or join project first"
+		w.Write([]byte(noProject))
+		return
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

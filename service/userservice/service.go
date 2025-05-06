@@ -11,7 +11,7 @@ type Repository interface {
 	Register(u entity.User) (entity.User, error)
 	GetUser(u entity.User) (entity.User, bool, error)
 	CreateProject(p entity.Project) (entity.Project, error)
-	AllProject(uID int) (p []entity.Project, b bool, e error)
+	AllProject(uID int) (p []entity.Project, b bool, e error) 
 	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
 	FindProjectByID(pID int) (p entity.Project, b bool, e error)
 	DeleteProjectByID(pID int) (p entity.Project, b bool, e error)
@@ -117,6 +117,7 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 }
 
 type NewProjectRequest struct {
+	ID          int    `pg:"id"`
 	Name        string `json:"name"`
 	Company     string `json:"company"`
 	Description string `json:"description"`
@@ -136,7 +137,7 @@ func (s Service) NewProject(req NewProjectRequest, userID int) (NewProjectRespon
 	pr := entity.Project{
 		Name:        req.Name,
 		Company:     req.Company,
-		OwnerID:     userID,
+		OwnerID:     req.ID,
 		Description: req.Description,
 		SocialLinks: req.SocialLinks,
 	}
@@ -155,33 +156,35 @@ func (s Service) NewProject(req NewProjectRequest, userID int) (NewProjectRespon
 }
 
 type AllProjectRequest struct {
-	ID int `json:"id"`
+	ID int
 }
 
-type AllProjectResponse struct {
-	OwnerID     int    `json:"owner_id"`
-	Name        string `json:"name"`
-	Company     string `json:"company"`
-	Description string `json:"description"`
-	SocialLinks string `json:"social_links"`
-}
+func (s Service) GetAllProject(request AllProjectRequest) ([]entity.Project, bool, error) {
 
-func (s Service) GetAllProject(id int) ([]entity.Project, bool ,error) {
+	project, exist, err := s.repo.AllProject(request.ID)
 
-	project, exist, err := s.repo.AllProject(id)
 	if err != nil {
 		fmt.Errorf("something unexpected happend")
+		return project, exist, err
 	}
 
-	return project,exist, nil
+	return project, exist, nil
 
 }
 
-func (s Service) GetAllOthersProject(id int) ([]entity.Project, error) {
+type AllOtherProjectRequest struct {
+	ID int
+}
 
-	project, _, _ := s.repo.AllOtherProject(id)
+func (s Service) GetAllOthersProject(request AllOtherProjectRequest) ([]entity.Project, bool, error) {
 
-	return project, nil
+	project, exist, err := s.repo.AllOtherProject(request.ID)
+	if err != nil {
+		fmt.Errorf("something unexpected happend")
+		return project, exist, err
+	}
+
+	return project, exist, nil
 
 }
 

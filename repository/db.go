@@ -95,7 +95,14 @@ func (d *PostgresDB) AllOtherProject(uID int) (p []entity.Project, b bool, e err
 `
 	userId := uID
 
-	d.DB.Query(&p, projectQuery, userId, userId)
+	_, err := d.DB.Query(&p, projectQuery, userId, userId)
+	if err != nil {
+		fmt.Errorf("something unexpected happend")
+		return p, false, err
+	}
+	if len(p) == 0 {
+		return p, false, nil
+	}
 
 	return p, true, nil
 }
