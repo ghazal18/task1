@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"task1/entity"
 	"task1/service/userservice"
 )
 
@@ -125,6 +124,7 @@ func (s Server) GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	req := userservice.AllProjectRequest{
 		ID: claim.UserID,
 	}
+	fmt.Println("claim.UserID",claim.UserID)
 
 	p, exist, err := s.userSvc.GetAllProject(req)
 	if !exist {
@@ -187,7 +187,7 @@ func (s Server) GetProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	projectIdStr := r.URL.Query().Get("project_id")
 	projectId, err := strconv.Atoi(projectIdStr)
-	if err!= nil {
+	if err != nil {
 		http.Error(w, "Please enter number for ID", http.StatusBadRequest)
 
 	}
@@ -201,9 +201,8 @@ func (s Server) GetProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	req := userservice.GetProjectByIDRequest{
-		UserID: claim.UserID,
+		UserID:    claim.UserID,
 		ProjectID: projectId,
-
 	}
 	p, err := s.userSvc.GetProjectByID(req)
 	if err != nil {
@@ -218,21 +217,21 @@ func (s Server) GetProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
+func (s Server) DeleteProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 	authToken := r.Header.Get("Authorization")
 
 	claim, err := s.controller.VerifyToken(authToken)
 	if err != nil {
 		//err.Error()
-		http.Error(w,"You don’t have permission to access" , http.StatusForbidden)
+		http.Error(w, "You don’t have permission to access", http.StatusForbidden)
 		return
 	}
-	
+
 	projectIdStr := r.URL.Query().Get("project_id")
 	projectId, err := strconv.Atoi(projectIdStr)
-	if err!= nil {
-		http.Error(w,"internal server error" , http.StatusInternalServerError)
-		
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+
 	}
 
 	can := s.acl.CanEditProject(claim.UserID, projectId)
@@ -253,58 +252,17 @@ func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonProject, err := json.Marshal("Project deleted")
-	if err!= nil {
+	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 
 	}
-	
 
 	w.Write(jsonProject)
 
 }
 
-func (s Server) PutProjectByID(w http.ResponseWriter, r *http.Request) {
-	/*
-		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			fmt.Print(err)
-		}
 
-		var uReq entity.Project
-		err = json.Unmarshal(data, &uReq)
-		if err != nil {
-			w.Write([]byte(
-				fmt.Sprintf(`{"error": "%s"}`, err.Error()),
-			))
-
-		}
-		fmt.Println("this is the requesti object",uReq)
-		projectIdStr := r.URL.Query().Get("project_id")
-		s.userSvc.UpdateProjectByID(projectIdStr,uReq)
-	*/
-
-	var input map[string]interface{}
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
-		return
-	}
-
-	jsonData, err := json.Marshal(input)
-	if err != nil {
-		panic(err)
-	}
-
-	// Convert JSON to struct
-	var p entity.Project
-	err = json.Unmarshal(jsonData, &p)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(p)
-
-}
-
-func (s Server) JoinOtherProject(w http.ResponseWriter, r *http.Request) {
+func (s Server) JoinOtherProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 	authToken := r.Header.Get("Authorization")
 
@@ -315,7 +273,91 @@ func (s Server) JoinOtherProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	projectIdStr := r.URL.Query().Get("project_id")
+	req := userservice.JoinProjectByIDRequest{
+		ProjectID: projectIdStr,
+		UserID:    strconv.Itoa(claim.UserID),
+	}
 
-	s.userSvc.JoinProjectByID(projectIdStr, strconv.Itoa(claim.UserID))
+	done, err := s.userSvc.JoinProjectByID(req)
+	if err!= nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+
+	}
+	if !done {
+		http.Error(w, "couldnt Join this project", http.StatusBadRequest)
+		return
+	}
+	res := userservice.Response{
+		Message: "YOU join the project",
+	}
+	jsonRes, err := json.Marshal(res)
+	if err != nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+
+	}
+
+	w.Write(jsonRes)
+
+
+}
+
+
+
+func (s Server) PutProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
+
+
+	authToken := r.Header.Get("Authorization")
+
+	claim, err := s.controller.VerifyToken(authToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	projectIdStr := r.URL.Query().Get("project_id")
+	projectId, err := strconv.Atoi(projectIdStr)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+
+	}
+
+	
+	can := s.acl.CanEditProject(claim.UserID, projectId)
+
+	if !can {
+		http.Error(w, "You don’t have permission to access, you should be owner to Edit project", http.StatusForbidden)
+		return
+
+	}
+	
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Bad request - Go away!", http.StatusBadRequest)
+	}
+
+	var p userservice.PutProjectByIDRequest
+	err = json.Unmarshal(data, &p)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(p)
+	res , ok , err := s.userSvc.UpdateProjectByID(projectIdStr,p)
+	if err!= nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+
+	}
+	if !ok {
+		http.Error(w, "couldn't update project", http.StatusBadRequest)
+		return
+	}
+	jsonRes, err := json.Marshal(res)
+	if err != nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+
+	}
+
+	w.Write(jsonRes)
+
+
 
 }

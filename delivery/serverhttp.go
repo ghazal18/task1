@@ -33,9 +33,9 @@ func (s Server) Serve() {
 	router.HandleFunc("/api/v1/auth/project/all", s.GetProjectsHandler).Methods("GET")
 	router.HandleFunc("/api/v1/auth/project/other/all", s.GetOtherProjectHandler).Methods("GET")
 	router.HandleFunc("/api/v1/auth/project", s.GetProjectByIDHandler).Methods("GET")
-	router.HandleFunc("/api/v1/auth/project", s.DeleteProjectByID).Methods("DELETE")
-	router.HandleFunc("/api/v1/auth/project", s.PutProjectByID).Methods("PUT")
-	router.HandleFunc("/api/v1/auth/project/join", s.JoinOtherProject).Methods("POST")
+	router.HandleFunc("/api/v1/auth/project", s.DeleteProjectByIDHandler).Methods("DELETE")
+	router.HandleFunc("/api/v1/auth/project", s.PutProjectByIDHandler).Methods("PUT")
+	router.HandleFunc("/api/v1/auth/project/join", s.JoinOtherProjectHandler).Methods("POST")
 	// Start the server
 	http.ListenAndServe(":8010", router)
 }

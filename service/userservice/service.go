@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"task1/entity"
 )
 
@@ -15,8 +16,8 @@ type Repository interface {
 	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
 	FindProjectByID(pID int) (p entity.Project, e error)
 	DeleteProjectByID(pID int) (p entity.Project, b bool, e error)
-	UpdateProjectByID(pID string, p entity.Project)
-	JoinProjectByID(pID, uID string)
+	UpdateProjectByID(p entity.Project) (entity.Project, bool, error)
+	JoinProjectByID(pID, uID string) (bool, error)
 }
 
 type AuthGenerator interface {
@@ -40,6 +41,10 @@ func New(repo Repository, auth AuthGenerator, acl ACLGenerator) Service {
 
 type Token struct {
 	AccessToken string `json:"access_token"`
+}
+
+type Response struct {
+	Message string `json:"message"`
 }
 
 type SignUpRequest struct {
@@ -216,23 +221,54 @@ func (s Service) DeleteProjectByID(id int) (entity.Project, bool, error) {
 
 }
 
-func (s Service) JoinProjectByID(pID, uID string) {
-
-	s.repo.JoinProjectByID(pID, uID)
+type JoinProjectByIDRequest struct {
+	ProjectID string
+	UserID    string
 }
 
-func (s Service) UpdateProjectByID(pID string, p entity.Project) {
+func (s Service) JoinProjectByID(req JoinProjectByIDRequest) (bool, error) {
 
-	s.repo.UpdateProjectByID(pID, p)
+	done, err := s.repo.JoinProjectByID(req.ProjectID, req.UserID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return done, err
+}
+
+func (s Service) UpdateProjectByID(pID string, p PutProjectByIDRequest) (PutProjectByIDRespons, bool, error) {
+	id, err := strconv.Atoi(pID)
+	if err != nil {
+		fmt.Errorf("There is a problem in casting")
+	}
+	project := entity.Project{
+		ID:          id,
+		Name:        p.Name,
+		Company:     p.Company,
+		Description: p.Description,
+		SocialLinks: p.SocialLinks,
+	}
+
+	project, ok, err := s.repo.UpdateProjectByID(project)
+	resp := PutProjectByIDRespons{
+		Name: p.Name,
+		Company: p.Company,
+		Description: p.Description,
+		SocialLinks: p.SocialLinks,
+	}
+	return resp, ok, err
 
 }
 
-func (s Service) PutProjectByID(id string, update map[string]interface{}) error {
-	return nil
-}
-
-type UpdateProjectRequest struct {
+type PutProjectByIDRequest struct {
+	ID          int    `json:"id"`
 	OwnerID     int    `json:"owner_id"`
+	Name        string `json:"name"`
+	Company     string `json:"company"`
+	Description string `json:"description"`
+	SocialLinks string `json:"social_links"`
+}
+
+type PutProjectByIDRespons struct {
 	Name        string `json:"name"`
 	Company     string `json:"company"`
 	Description string `json:"description"`

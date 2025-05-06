@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
+
 	"task1/entity"
 
 	"github.com/go-pg/pg/v10"
@@ -69,6 +69,7 @@ func (d *PostgresDB) AllProject(uID int) (p []entity.Project, b bool, e error) {
     LEFT JOIN project_members pm ON p.id = pm.project_id
     WHERE p.owner_id = ? OR pm.user_id = ?;`
 	userId := uID
+	fmt.Println("THIIISS", uID)
 
 	_, err := d.DB.Query(&p, projectQuery, userId, userId)
 	if err != nil {
@@ -123,26 +124,24 @@ func (d *PostgresDB) DeleteProjectByID(pID int) (p entity.Project, b bool, e err
 
 	projectQuery := `DELETE FROM projects WHERE id = ?;`
 
-	res , err :=d.DB.Query(&p, projectQuery, pID)
+	res, err := d.DB.Query(&p, projectQuery, pID)
 	if res.RowsAffected() == 0 {
-		return p , false , nil
+		return p, false, nil
 	}
-	
-	if err!= nil {
+
+	if err != nil {
 		return p, true, err
 	}
 
 	return p, true, nil
 }
 
-func (d *PostgresDB) UpdateProjectByID(pID string, p entity.Project) {
+func (d *PostgresDB) UpdateProjectByID(p entity.Project) (entity.Project, bool, error) {
 
 	columns := []string{}
 
-	id, _ := strconv.Atoi(pID)
-
 	project := entity.Project{
-		ID:          id,
+		ID:          p.ID,
 		Name:        p.Name,
 		Company:     p.Company,
 		Description: p.Description,
@@ -161,18 +160,27 @@ func (d *PostgresDB) UpdateProjectByID(pID string, p entity.Project) {
 	if p.SocialLinks != "" {
 		columns = append(columns, "social_links")
 	}
-	fmt.Println("p,columns", p, columns)
-	d.DB.Model(&project).Column(columns...).WherePK().Returning("*").Update()
-	fmt.Println(project)
 
+	res, err := d.DB.Model(&project).Column(columns...).WherePK().Returning("*").Update()
+	if err != nil {
+		return p, false, err
+	}
+	if res.RowsAffected() == 0 {
+		return p, false, nil
+	}
+	return p, true, nil
 }
 
-func (d *PostgresDB) JoinProjectByID(pID, uID string) {
+func (d *PostgresDB) JoinProjectByID(pID, uID string) (bool, error) {
 	var pm entity.ProjectMembers
 
 	projectMemberQuery := ` insert into project_members(project_id,user_id) values (?,?)`
+	_, err := d.DB.Query(&pm, projectMemberQuery, pID, uID)
+	if err != nil {
+		return false, err
+	}
 
-	d.DB.Query(&pm, projectMemberQuery, pID, uID)
+	return true, nil
 
 }
 
