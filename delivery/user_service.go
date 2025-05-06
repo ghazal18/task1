@@ -62,7 +62,6 @@ func (s Server) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := s.userSvc.Login(req)
 	if err != nil {
 		http.Error(w, "BadRequest", http.StatusBadRequest)
-
 	}
 
 	jsonResp, err := json.Marshal(resp)
@@ -74,11 +73,11 @@ func (s Server) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s Server) NewProject(w http.ResponseWriter, r *http.Request) {
+func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 	authToken := r.Header.Get("Authorization")
 
-	_, err := s.controller.VerifyToken(authToken)
+	claim, err := s.controller.VerifyToken(authToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
@@ -97,10 +96,21 @@ func (s Server) NewProject(w http.ResponseWriter, r *http.Request) {
 		))
 
 	}
-	s.userSvc.NewProject(Req)
+	resp, err := s.userSvc.NewProject(Req, claim.UserID)
+	if err != nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+	}
+
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+	}
+
+	w.Write(jsonResp)
+
 }
 
-func (s Server) GetProjects(w http.ResponseWriter, r *http.Request) {
+func (s Server) GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	authToken := r.Header.Get("Authorization")
 
 	claim, err := s.controller.VerifyToken(authToken)
@@ -108,17 +118,22 @@ func (s Server) GetProjects(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
-	println(claim.UserID)
 
 	p, err := s.userSvc.GetAllProject(claim.UserID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 
 	jsonProject, err := json.Marshal(p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 
 	w.Write(jsonProject)
 
 }
 
-func (s Server) GetOtherProjects(w http.ResponseWriter, r *http.Request) {
+func (s Server) GetOtherProjectHandler(w http.ResponseWriter, r *http.Request) {
 	authToken := r.Header.Get("Authorization")
 
 	claim, err := s.controller.VerifyToken(authToken)
@@ -232,6 +247,7 @@ func (s Server) PutProjectByID(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(p)
 
 }
+
 func (s Server) JoinOtherProject(w http.ResponseWriter, r *http.Request) {
 
 	authToken := r.Header.Get("Authorization")

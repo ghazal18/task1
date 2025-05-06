@@ -22,8 +22,6 @@ func New() *PostgresDB {
 	return &PostgresDB{DB: db}
 }
 
-
-
 func (d *PostgresDB) Register(u entity.User) (entity.User, error) {
 	_, err := d.DB.Model(&u).Insert()
 	fmt.Println(err)
@@ -37,29 +35,31 @@ func (d *PostgresDB) GetUser(u entity.User) (entity.User, bool, error) {
 	userEmail := u.Email
 	userPass := u.Password
 	_, err := d.DB.Query(&u, userQuery, userEmail, userPass)
-	if err!=nil {
+	if err != nil {
 		fmt.Errorf("Something unexpected happend")
 	}
-	if u.ID == 0{
+	if u.ID == 0 {
 		return u, false, nil
-	}else{
+	} else {
 		return u, true, nil
 	}
 }
 
-func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, bool, error) {
+func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, error) {
 
-	projectQuery := `Insert into projects(owner_id,name,company,description,social_links) values (?,?,?,?,?);`
+	projectQuery := `Insert into projects(owner_id,name,company,description,social_links) values (?,?,?,?,?) RETURNING id;`
 	projectOwner := p.OwnerID
 	projectName := p.Name
 	projectCompany := p.Company
 	projectDesc := p.Description
 	projectSocial := p.SocialLinks
 
-	res, err := d.DB.Query(&p, projectQuery, projectOwner, projectName, projectCompany, projectDesc, projectSocial)
-	fmt.Println(res.RowsReturned(), res.Model(), p, err)
-	fmt.Println("this is p ", p)
-	return p, true, nil
+	_, err := d.DB.Query(&p, projectQuery, projectOwner, projectName, projectCompany, projectDesc, projectSocial)
+	if err != nil {
+		fmt.Errorf("something unexpected happend")
+	}
+
+	return p, nil
 }
 
 func (d *PostgresDB) AllProject(uID int) (p []entity.Project, b bool, e error) {
@@ -112,43 +112,42 @@ func (d *PostgresDB) DeleteProjectByID(pID int) (p entity.Project, b bool, e err
 }
 
 func (d *PostgresDB) UpdateProjectByID(pID string, p entity.Project) {
-	
+
 	columns := []string{}
 
-	id,_:=strconv.Atoi(pID)
+	id, _ := strconv.Atoi(pID)
 
 	project := entity.Project{
-		ID: id,
-		Name: p.Name,
-		Company: p.Company,
+		ID:          id,
+		Name:        p.Name,
+		Company:     p.Company,
 		Description: p.Description,
 		SocialLinks: p.SocialLinks,
 	}
-	
-	if p.Name!="" {
+
+	if p.Name != "" {
 		columns = append(columns, "name")
 	}
-	if p.Company!="" {
+	if p.Company != "" {
 		columns = append(columns, "company")
 	}
-	if p.Description!= "" {
+	if p.Description != "" {
 		columns = append(columns, "description")
 	}
-	if p.SocialLinks!="" {
+	if p.SocialLinks != "" {
 		columns = append(columns, "social_links")
 	}
-	fmt.Println("p,columns",p,columns)
+	fmt.Println("p,columns", p, columns)
 	d.DB.Model(&project).Column(columns...).WherePK().Returning("*").Update()
 	fmt.Println(project)
 
 }
-func (d *PostgresDB) JoinProjectByID(pID ,uID string) {
+func (d *PostgresDB) JoinProjectByID(pID, uID string) {
 	var pm entity.ProjectMembers
 
 	projectMemberQuery := ` insert into project_members(project_id,user_id) values (?,?)`
 
-	d.DB.Query(&pm, projectMemberQuery, pID,uID)
-
+	d.DB.Query(&pm, projectMemberQuery, pID, uID)
 
 }
 

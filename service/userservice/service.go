@@ -10,7 +10,7 @@ import (
 type Repository interface {
 	Register(u entity.User) (entity.User, error)
 	GetUser(u entity.User) (entity.User, bool, error)
-	CreateProject(p entity.Project) (entity.Project, bool, error)
+	CreateProject(p entity.Project) (entity.Project, error)
 	AllProject(uID int) (p []entity.Project, b bool, e error)
 	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
 	FindProjectByID(pID int) (p entity.Project, b bool, e error)
@@ -86,7 +86,6 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 		Password: req.Password,
 	}
 
-
 	user, exist, err := s.repo.GetUser(user)
 	if err != nil {
 		return LoginResponse{}, fmt.Errorf("something unexpected happend")
@@ -118,7 +117,6 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 }
 
 type NewProjectRequest struct {
-	OwnerID     int    `json:"owner_id"`
 	Name        string `json:"name"`
 	Company     string `json:"company"`
 	Description string `json:"description"`
@@ -126,19 +124,34 @@ type NewProjectRequest struct {
 }
 
 type NewProjectResponse struct {
-	Name string `json:"name"`
+	ID          int    `pg:"id"`
+	OwnerID     int    `pg:"owner_id"`
+	Name        string `pg:"name"`
+	Company     string `pg:"company"`
+	Description string `pg:"description"`
+	SocialLinks string `pg:"social_links"`
 }
 
-func (s Service) NewProject(req NewProjectRequest) (NewProjectResponse, error) {
+func (s Service) NewProject(req NewProjectRequest, userID int) (NewProjectResponse, error) {
 	pr := entity.Project{
 		Name:        req.Name,
 		Company:     req.Company,
-		OwnerID:     req.OwnerID,
+		OwnerID:     userID,
 		Description: req.Description,
 		SocialLinks: req.SocialLinks,
 	}
-	s.repo.CreateProject(pr)
-	return NewProjectResponse{Name: "created"}, nil
+	project, err := s.repo.CreateProject(pr)
+	if err != nil {
+		fmt.Errorf("something unexpected happend")
+	}
+	return NewProjectResponse{
+		ID:          project.ID,
+		OwnerID:     project.OwnerID,
+		Name:        project.Name,
+		Company:     project.Company,
+		Description: project.Description,
+		SocialLinks: project.SocialLinks,
+	}, nil
 }
 
 type AllProjectRequest struct {
