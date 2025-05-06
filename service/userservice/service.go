@@ -62,7 +62,7 @@ func (s Service) SignUp(req SignUpRequest) (SignUpResponse, error) {
 
 	user := entity.User{
 		Email:    req.Email,
-		Password: req.Password,
+		Password: getMD5Hash(req.Password),
 	}
 
 	user, _ = s.repo.Register(user)
@@ -79,8 +79,12 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type LoginUserResponse struct {
+	ID int `json:"id"`
+	Email    string `json:"email"`
+}
 type LoginResponse struct {
-	User   entity.User `json:"user"`
+	User   LoginUserResponse `json:"user"`
 	Tokens Token       `json:"tokens"`
 }
 
@@ -88,7 +92,7 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 
 	user := entity.User{
 		Email:    req.Email,
-		Password: req.Password,
+		Password: getMD5Hash(req.Password),
 	}
 
 	user, exist, err := s.repo.GetUser(user)
@@ -98,8 +102,8 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 	if !exist {
 		return LoginResponse{}, fmt.Errorf("username or password isn't correct")
 	}
-	//if user.Password != getMD5Hash(req.Password) {
-	if user.Password != req.Password {
+	if user.Password != getMD5Hash(req.Password) {
+	
 		return LoginResponse{}, fmt.Errorf("username or password isn't correct")
 	}
 
@@ -109,10 +113,9 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 	}
 
 	return LoginResponse{
-		User: entity.User{
+		User: LoginUserResponse{
 			ID:       user.ID,
 			Email:    user.Email,
-			Password: user.Password,
 		},
 		Tokens: Token{
 			AccessToken: accessToken,
