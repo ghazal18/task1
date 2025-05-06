@@ -11,9 +11,9 @@ type Repository interface {
 	Register(u entity.User) (entity.User, error)
 	GetUser(u entity.User) (entity.User, bool, error)
 	CreateProject(p entity.Project) (entity.Project, error)
-	AllProject(uID int) (p []entity.Project, b bool, e error) 
+	AllProject(uID int) (p []entity.Project, b bool, e error)
 	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
-	FindProjectByID(pID int) (p entity.Project, b bool, e error)
+	FindProjectByID(pID int) (p entity.Project, e error)
 	DeleteProjectByID(pID int) (p entity.Project, b bool, e error)
 	UpdateProjectByID(pID string, p entity.Project)
 	JoinProjectByID(pID, uID string)
@@ -188,19 +188,31 @@ func (s Service) GetAllOthersProject(request AllOtherProjectRequest) ([]entity.P
 
 }
 
-func (s Service) GetProjectByID(id int) (entity.Project, error) {
+type GetProjectByIDRequest struct {
+	UserID    int
+	ProjectID int
+}
 
-	project, _, _ := s.repo.FindProjectByID(id)
+func (s Service) GetProjectByID(request GetProjectByIDRequest) (entity.Project, error) {
+
+	project, err := s.repo.FindProjectByID(request.ProjectID)
+	if err != nil {
+		fmt.Errorf("something unexpected happend")
+		return project, err
+	}
 
 	return project, nil
 
 }
 
-func (s Service) DeleteProjectByID(id int) (entity.Project, error) {
+func (s Service) DeleteProjectByID(id int) (entity.Project, bool, error) {
 
-	project, _, _ := s.repo.DeleteProjectByID(id)
+	project, affected, err := s.repo.DeleteProjectByID(id)
+	if err != nil {
+		return project, affected, err
+	}
 
-	return project, nil
+	return project, affected, nil
 
 }
 
@@ -208,6 +220,7 @@ func (s Service) JoinProjectByID(pID, uID string) {
 
 	s.repo.JoinProjectByID(pID, uID)
 }
+
 func (s Service) UpdateProjectByID(pID string, p entity.Project) {
 
 	s.repo.UpdateProjectByID(pID, p)

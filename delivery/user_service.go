@@ -176,7 +176,7 @@ func (s Server) GetOtherProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s Server) GetProjectByID(w http.ResponseWriter, r *http.Request) {
+func (s Server) GetProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 	authToken := r.Header.Get("Authorization")
 
 	claim, err := s.controller.VerifyToken(authToken)
@@ -187,17 +187,32 @@ func (s Server) GetProjectByID(w http.ResponseWriter, r *http.Request) {
 
 	projectIdStr := r.URL.Query().Get("project_id")
 	projectId, err := strconv.Atoi(projectIdStr)
-	println("claim.UserID, projectId", claim.UserID, projectId)
+	if err!= nil {
+		http.Error(w, "Please enter number for ID", http.StatusBadRequest)
+
+	}
 
 	can := s.acl.CanViewProject(claim.UserID, projectId)
 
 	if !can {
-		fmt.Println(can)
-		http.Error(w, err.Error(), http.StatusForbidden)
+		//err.Error()
+		http.Error(w, "we cannot do what you want", http.StatusForbidden)
+		return
 
 	}
-	p, err := s.userSvc.GetProjectByID(projectId)
+	req := userservice.GetProjectByIDRequest{
+		UserID: claim.UserID,
+		ProjectID: projectId,
+
+	}
+	p, err := s.userSvc.GetProjectByID(req)
+	if err != nil {
+		http.Error(w, "Something unexpected happend", http.StatusInternalServerError)
+	}
 	jsonProject, err := json.Marshal(p)
+	if err != nil {
+		http.Error(w, "Something unexpected happend", http.StatusInternalServerError)
+	}
 
 	w.Write(jsonProject)
 
@@ -208,25 +223,41 @@ func (s Server) DeleteProjectByID(w http.ResponseWriter, r *http.Request) {
 
 	claim, err := s.controller.VerifyToken(authToken)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		//err.Error()
+		http.Error(w,"You don’t have permission to access" , http.StatusForbidden)
 		return
 	}
-
+	
 	projectIdStr := r.URL.Query().Get("project_id")
 	projectId, err := strconv.Atoi(projectIdStr)
-	println("claim.UserID, projectId", claim.UserID, projectId)
+	if err!= nil {
+		http.Error(w,"internal server error" , http.StatusInternalServerError)
+		
+	}
 
 	can := s.acl.CanEditProject(claim.UserID, projectId)
 
 	if !can {
-		fmt.Println(can)
-		http.Error(w, err.Error(), http.StatusForbidden)
+		http.Error(w, "You don’t have permission to access, you should be owner to delete project", http.StatusForbidden)
+		return
 
 	}
-	p, err := s.userSvc.DeleteProjectByID(projectId)
-	fmt.Println("dude", p)
+	_, affected, err := s.userSvc.DeleteProjectByID(projectId)
+	if err != nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 
-	jsonProject, err := json.Marshal(p)
+	}
+	if !affected {
+		http.Error(w, "couldnt delete", http.StatusBadRequest)
+		return
+	}
+
+	jsonProject, err := json.Marshal("Project deleted")
+	if err!= nil {
+		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+
+	}
+	
 
 	w.Write(jsonProject)
 

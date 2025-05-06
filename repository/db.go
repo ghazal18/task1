@@ -107,20 +107,30 @@ func (d *PostgresDB) AllOtherProject(uID int) (p []entity.Project, b bool, e err
 	return p, true, nil
 }
 
-func (d *PostgresDB) FindProjectByID(pID int) (p entity.Project, b bool, e error) {
+func (d *PostgresDB) FindProjectByID(pID int) (p entity.Project, e error) {
 
 	projectQuery := `SELECT * FROM projects WHERE id = ?;`
 
-	d.DB.Query(&p, projectQuery, pID)
+	_, err := d.DB.Query(&p, projectQuery, pID)
+	if err != nil {
+		return p, err
+	}
 
-	return p, true, nil
+	return p, nil
 }
 
 func (d *PostgresDB) DeleteProjectByID(pID int) (p entity.Project, b bool, e error) {
 
 	projectQuery := `DELETE FROM projects WHERE id = ?;`
 
-	d.DB.Query(&p, projectQuery, pID)
+	res , err :=d.DB.Query(&p, projectQuery, pID)
+	if res.RowsAffected() == 0 {
+		return p , false , nil
+	}
+	
+	if err!= nil {
+		return p, true, err
+	}
 
 	return p, true, nil
 }
@@ -156,6 +166,7 @@ func (d *PostgresDB) UpdateProjectByID(pID string, p entity.Project) {
 	fmt.Println(project)
 
 }
+
 func (d *PostgresDB) JoinProjectByID(pID, uID string) {
 	var pm entity.ProjectMembers
 
