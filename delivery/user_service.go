@@ -119,7 +119,12 @@ func (s Server) GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p, err := s.userSvc.GetAllProject(claim.UserID)
+	p,exist, err := s.userSvc.GetAllProject(claim.UserID)
+	if !exist {
+		noProject := "You should create or join project first"
+		w.Write([]byte(noProject))
+		return
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -144,8 +149,14 @@ func (s Server) GetOtherProjectHandler(w http.ResponseWriter, r *http.Request) {
 	println(claim.UserID)
 
 	p, err := s.userSvc.GetAllOthersProject(claim.UserID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 
 	jsonProject, err := json.Marshal(p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 
 	w.Write(jsonProject)
 

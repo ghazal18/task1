@@ -166,11 +166,14 @@ type AllProjectResponse struct {
 	SocialLinks string `json:"social_links"`
 }
 
-func (s Service) GetAllProject(id int) ([]entity.Project, error) {
+func (s Service) GetAllProject(id int) ([]entity.Project, bool ,error) {
 
-	project, _, _ := s.repo.AllProject(id)
+	project, exist, err := s.repo.AllProject(id)
+	if err != nil {
+		fmt.Errorf("something unexpected happend")
+	}
 
-	return project, nil
+	return project,exist, nil
 
 }
 
