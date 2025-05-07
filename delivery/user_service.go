@@ -102,8 +102,10 @@ func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 	}
-
+	fmt.Println("UNMARSHALLAZED",resp)
+	
 	jsonResp, err := json.Marshal(resp)
+	fmt.Println("MARSHALLAZED",string(jsonResp))
 	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 	}

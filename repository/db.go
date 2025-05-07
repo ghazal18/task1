@@ -46,7 +46,21 @@ func (d *PostgresDB) GetUser(u entity.User) (entity.User, bool, error) {
 }
 
 func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, error) {
+	/*
+		projectQuery := `Insert into projects(owner_id,name,company,description,social_links) values (?,?,?,?,?) RETURNING id;`
+		projectOwner := p.OwnerID
+		projectName := p.Name
+		projectCompany := p.Company
+		projectDesc := p.Description
+		projectSocial := p.SocialLinks
 
+		_, err := d.DB.Query(&p, projectQuery, projectOwner, projectName, projectCompany, projectDesc, projectSocial)
+		if err != nil {
+			fmt.Errorf("something unexpected happend")
+		}
+
+		return p, nil
+	*/
 	projectQuery := `Insert into projects(owner_id,name,company,description,social_links) values (?,?,?,?,?) RETURNING id;`
 	projectOwner := p.OwnerID
 	projectName := p.Name
@@ -60,6 +74,7 @@ func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, error) {
 	}
 
 	return p, nil
+
 }
 
 func (d *PostgresDB) AllProject(uID int) (p []entity.Project, b bool, e error) {
@@ -157,7 +172,10 @@ func (d *PostgresDB) UpdateProjectByID(p entity.Project) (entity.Project, bool, 
 	if p.Description != "" {
 		columns = append(columns, "description")
 	}
-	if p.SocialLinks != "" {
+	// if p.SocialLinks != "" {
+	// 	columns = append(columns, "social_links")
+	// }
+	if len(p.SocialLinks) != 0 {
 		columns = append(columns, "social_links")
 	}
 

@@ -6,7 +6,7 @@ import (
 	"task1/delivery"
 	"task1/repository/acl"
 	"task1/service/userservice"
-	uservalidator "task1/validator/user_validator"
+	"task1/validator/user_validator"
 	"time"
 )
 
@@ -20,6 +20,7 @@ func main() {
 	}
 
 	usersvc := userservice.New(repo, userControl, acl)
+
 	uservalid := uservalidator.New()
 
 	serve := delivery.New(usersvc, userControl, acl, uservalid)

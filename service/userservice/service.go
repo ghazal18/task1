@@ -3,6 +3,7 @@ package userservice
 import (
 	"crypto/md5"
 	"encoding/hex"
+//	"encoding/json"
 	"fmt"
 	"strconv"
 	"task1/entity"
@@ -129,7 +130,7 @@ type NewProjectRequest struct {
 	Name        string `json:"name"`
 	Company     string `json:"company"`
 	Description string `json:"description"`
-	SocialLinks string `json:"social_links"`
+	SocialLinks map[string]string `json:"social_links"`
 }
 
 type NewProjectResponse struct {
@@ -138,10 +139,20 @@ type NewProjectResponse struct {
 	Name        string `pg:"name"`
 	Company     string `pg:"company"`
 	Description string `pg:"description"`
-	SocialLinks string `pg:"social_links"`
+	SocialLinks map[string]string `pg:"social_links"`
 }
 
 func (s Service) NewProject(req NewProjectRequest, userID int) (NewProjectResponse, error) {
+	// jsonDataSocialLink, _ := json.Marshal(req.SocialLinks)
+	// fmt.Println("New project service", string(jsonDataSocialLink))
+	// pr := entity.Project{
+	// 	Name:        req.Name,
+	// 	Company:     req.Company,
+	// 	OwnerID:     req.ID,
+	// 	Description: req.Description,
+	// 	SocialLinks: string(jsonDataSocialLink),
+	// }
+	// project, err := s.repo.CreateProject(pr)
 	pr := entity.Project{
 		Name:        req.Name,
 		Company:     req.Company,
@@ -153,6 +164,8 @@ func (s Service) NewProject(req NewProjectRequest, userID int) (NewProjectRespon
 	if err != nil {
 		fmt.Errorf("something unexpected happend")
 	}
+	fmt.Println("DUDE", project.SocialLinks)
+
 	return NewProjectResponse{
 		ID:          project.ID,
 		OwnerID:     project.OwnerID,
@@ -252,6 +265,7 @@ func (s Service) UpdateProjectByID(pID string, p PutProjectByIDRequest) (PutProj
 	}
 
 	project, ok, err := s.repo.UpdateProjectByID(project)
+	
 	resp := PutProjectByIDRespons{
 		Name: p.Name,
 		Company: p.Company,
@@ -268,14 +282,14 @@ type PutProjectByIDRequest struct {
 	Name        string `json:"name"`
 	Company     string `json:"company"`
 	Description string `json:"description"`
-	SocialLinks string `json:"social_links"`
+	SocialLinks map[string]string `json:"social_links"`
 }
 
 type PutProjectByIDRespons struct {
 	Name        string `json:"name"`
 	Company     string `json:"company"`
 	Description string `json:"description"`
-	SocialLinks string `json:"social_links"`
+	SocialLinks map[string]string `json:"social_links"`
 }
 
 func getMD5Hash(text string) string {

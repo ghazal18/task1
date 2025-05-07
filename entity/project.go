@@ -6,5 +6,5 @@ type Project struct {
 	Name        string `pg:"name"`
 	Company     string `pg:"company"`
 	Description string `pg:"description"`
-	SocialLinks string `pg:"social_links"`
+	SocialLinks map[string]string `pg:"social_links"`
 }
