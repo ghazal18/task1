@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"strconv"
 	"task1/entity"
 )
 
@@ -43,8 +42,6 @@ type Token struct {
 	AccessToken string `json:"access_token"`
 }
 
-
-
 type SignUpRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -65,7 +62,7 @@ func (s Service) SignUp(req SignUpRequest) (*SignUpResponse, error) {
 
 	user, err := s.repo.Register(user)
 	if err != nil {
-		return nil, fmt.Errorf("%w",err)
+		return nil, fmt.Errorf("%w", err)
 	}
 	resp = SignUpResponse{
 		ID:    user.ID,
@@ -98,7 +95,7 @@ func (s Service) Login(req LoginRequest) (*LoginResponse, error) {
 
 	user, exist, err := s.repo.GetUser(user)
 	if err != nil {
-		return nil,fmt.Errorf("unexpected error: %w", err)
+		return nil, fmt.Errorf("unexpected error: %w", err)
 	}
 	if !exist {
 		return nil, fmt.Errorf("username or password isn't correct")
@@ -143,7 +140,7 @@ type NewProjectResponse struct {
 }
 
 func (s Service) NewProject(req NewProjectRequest, userID int) (*NewProjectResponse, error) {
-	
+
 	pr := entity.Project{
 		Name:        req.Name,
 		Company:     req.Company,
@@ -153,7 +150,7 @@ func (s Service) NewProject(req NewProjectRequest, userID int) (*NewProjectRespo
 	}
 	project, err := s.repo.CreateProject(pr)
 	if err != nil {
-		return nil , fmt.Errorf("%w",err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return &NewProjectResponse{
@@ -173,12 +170,12 @@ type AllProjectRequest struct {
 func (s Service) GetAllProject(request AllProjectRequest) (*[]entity.Project, error) {
 
 	project, err := s.repo.AllProject(request.ID)
-	if len(project)==0 {
+	if len(project) == 0 {
 		return nil, fmt.Errorf("you don't have project")
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("%w",err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return &project, nil
@@ -192,11 +189,11 @@ type AllOtherProjectRequest struct {
 func (s Service) GetAllOthersProject(request AllOtherProjectRequest) (*[]entity.Project, error) {
 
 	project, err := s.repo.AllOtherProject(request.ID)
-	if len(project)==0 {
+	if len(project) == 0 {
 		return nil, fmt.Errorf("there is no project")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w",err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return &project, nil
@@ -208,15 +205,14 @@ type GetProjectByIDRequest struct {
 	ProjectID int
 }
 
-func (s Service) GetProjectByID(request GetProjectByIDRequest) (entity.Project, error) {
+func (s Service) GetProjectByID(request GetProjectByIDRequest) (*entity.Project, error) {
 
 	project, err := s.repo.FindProjectByID(request.ProjectID)
 	if err != nil {
-		
-		return project, fmt.Errorf("something unexpected happend")
+		return nil, fmt.Errorf("%w", err)
 	}
 
-	return project, nil
+	return &project, nil
 
 }
 
@@ -224,7 +220,7 @@ func (s Service) DeleteProjectByID(id int) (entity.Project, bool, error) {
 
 	project, affected, err := s.repo.DeleteProjectByID(id)
 	if err != nil {
-		return project, affected, err
+		return project, affected, fmt.Errorf("%w", err)
 	}
 
 	return project, affected, nil
@@ -240,18 +236,15 @@ func (s Service) JoinProjectByID(req JoinProjectByIDRequest) (bool, error) {
 
 	done, err := s.repo.JoinProjectByID(req.ProjectID, req.UserID)
 	if err != nil {
-		fmt.Println(err)
+		return done, fmt.Errorf("%w", err)
 	}
-	return done, err
+	return done, nil
 }
 
-func (s Service) UpdateProjectByID(pID string, p PutProjectByIDRequest) (PutProjectByIDRespons, bool, error) {
-	id, err := strconv.Atoi(pID)
-	if err != nil {
-		fmt.Errorf("There is a problem in casting")
-	}
+func (s Service) UpdateProjectByID(pID int, p PutProjectByIDRequest) (*PutProjectByIDRespons, bool, error) {
+	
 	project := entity.Project{
-		ID:          id,
+		ID:          pID,
 		Name:        p.Name,
 		Company:     p.Company,
 		Description: p.Description,
@@ -259,6 +252,9 @@ func (s Service) UpdateProjectByID(pID string, p PutProjectByIDRequest) (PutProj
 	}
 
 	project, ok, err := s.repo.UpdateProjectByID(project)
+	if err!=nil {
+		return nil ,ok, fmt.Errorf("%w", err)
+	}
 
 	resp := PutProjectByIDRespons{
 		Name:        p.Name,
@@ -266,7 +262,7 @@ func (s Service) UpdateProjectByID(pID string, p PutProjectByIDRequest) (PutProj
 		Description: p.Description,
 		SocialLinks: p.SocialLinks,
 	}
-	return resp, ok, err
+	return &resp, ok, err
 
 }
 

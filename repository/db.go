@@ -106,7 +106,7 @@ func (d *PostgresDB) AllOtherProject(uID int) (p []entity.Project, e error) {
 
 	_, err := d.DB.Query(&p, projectQuery, userId, userId)
 	if err != nil {
-		return p, fmt.Errorf("%w",errormsg.ErrInternal)
+		return p, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
 
 	return p, nil
@@ -118,7 +118,7 @@ func (d *PostgresDB) FindProjectByID(pID int) (p entity.Project, e error) {
 
 	_, err := d.DB.Query(&p, projectQuery, pID)
 	if err != nil {
-		return p, err
+		return p, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
 
 	return p, nil
@@ -134,7 +134,7 @@ func (d *PostgresDB) DeleteProjectByID(pID int) (p entity.Project, b bool, e err
 	}
 
 	if err != nil {
-		return p, true, err
+		return p, true, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
 
 	return p, true, nil
@@ -161,16 +161,13 @@ func (d *PostgresDB) UpdateProjectByID(p entity.Project) (entity.Project, bool, 
 	if p.Description != "" {
 		columns = append(columns, "description")
 	}
-	// if p.SocialLinks != "" {
-	// 	columns = append(columns, "social_links")
-	// }
 	if len(p.SocialLinks) != 0 {
 		columns = append(columns, "social_links")
 	}
 
 	res, err := d.DB.Model(&project).Column(columns...).WherePK().Returning("*").Update()
 	if err != nil {
-		return p, false, err
+		return p, false, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
 	if res.RowsAffected() == 0 {
 		return p, false, nil
@@ -184,7 +181,7 @@ func (d *PostgresDB) JoinProjectByID(pID, uID string) (bool, error) {
 	projectMemberQuery := ` insert into project_members(project_id,user_id) values (?,?)`
 	_, err := d.DB.Query(&pm, projectMemberQuery, pID, uID)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
 
 	return true, nil
@@ -194,11 +191,11 @@ func (d *PostgresDB) JoinProjectByID(pID, uID string) (bool, error) {
 func (d *PostgresDB) IsOwner(userID, projectID int) (b bool) {
 	var p entity.Project
 
-	//query := `SELECT owner_id FROM projects WHERE id = ? ;`
+	
 	query := `SELECT * FROM projects WHERE id = ? ;`
 	d.DB.Query(&p, query, projectID)
 
-	// return err == nil && ownerID == userID
+	
 	fmt.Println("ownerID == userID", p.OwnerID, userID, p.OwnerID == userID, projectID)
 	return p.OwnerID == userID
 }
@@ -206,18 +203,14 @@ func (d *PostgresDB) IsOwner(userID, projectID int) (b bool) {
 func (d *PostgresDB) IsMember(userID, projectID int) (b bool) {
 	var pm entity.ProjectMembers
 
-	// query := `SELECT EXISTS (
-	// 	SELECT 1 FROM project_members
-	// 	WHERE project_id = ? AND user_id = ?
-	//     );`
+	
 	query := `SELECT * FROM project_members 
 	 	WHERE project_id = ? AND user_id = ?;`
 
 	d.DB.Query(&pm, query, projectID, userID)
 
-	// return err == nil && exists
+	
 	if pm.ID != 0 {
-		fmt.Println(pm.ID)
 		return true
 	}
 	return false
