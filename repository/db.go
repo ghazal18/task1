@@ -165,6 +165,7 @@ func (d *PostgresDB) UpdateProjectByID(p entity.Project) (entity.Project, bool, 
 		columns = append(columns, "social_links")
 	}
 
+
 	res, err := d.DB.Model(&project).Column(columns...).WherePK().Returning("*").Update()
 	if err != nil {
 		return p, false, fmt.Errorf("%w", errormsg.ErrInternal)
