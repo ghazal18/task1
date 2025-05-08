@@ -12,8 +12,8 @@ type Repository interface {
 	Register(u entity.User) (entity.User, error)
 	GetUser(u entity.User) (entity.User, bool, error)
 	CreateProject(p entity.Project) (entity.Project, error)
-	AllProject(uID int) (p []entity.Project, b bool, e error)
-	AllOtherProject(uID int) (p []entity.Project, b bool, e error)
+	AllProject(uID int) (p []entity.Project, e error)
+	AllOtherProject(uID int) (p []entity.Project, e error)
 	FindProjectByID(pID int) (p entity.Project, e error)
 	DeleteProjectByID(pID int) (p entity.Project, b bool, e error)
 	UpdateProjectByID(p entity.Project) (entity.Project, bool, error)
@@ -170,16 +170,18 @@ type AllProjectRequest struct {
 	ID int
 }
 
-func (s Service) GetAllProject(request AllProjectRequest) ([]entity.Project, bool, error) {
+func (s Service) GetAllProject(request AllProjectRequest) (*[]entity.Project, error) {
 
-	project, exist, err := s.repo.AllProject(request.ID)
-
-	if err != nil {
-		fmt.Errorf("something unexpected happend")
-		return project, exist, err
+	project, err := s.repo.AllProject(request.ID)
+	if len(project)==0 {
+		return nil, fmt.Errorf("you don't have project")
 	}
 
-	return project, exist, nil
+	if err != nil {
+		return nil, fmt.Errorf("%w",err)
+	}
+
+	return &project, nil
 
 }
 
@@ -187,15 +189,17 @@ type AllOtherProjectRequest struct {
 	ID int
 }
 
-func (s Service) GetAllOthersProject(request AllOtherProjectRequest) ([]entity.Project, bool, error) {
+func (s Service) GetAllOthersProject(request AllOtherProjectRequest) (*[]entity.Project, error) {
 
-	project, exist, err := s.repo.AllOtherProject(request.ID)
+	project, err := s.repo.AllOtherProject(request.ID)
+	if len(project)==0 {
+		return nil, fmt.Errorf("there is no project")
+	}
 	if err != nil {
-		fmt.Errorf("something unexpected happend")
-		return project, exist, err
+		return nil, fmt.Errorf("%w",err)
 	}
 
-	return project, exist, nil
+	return &project, nil
 
 }
 
@@ -208,8 +212,8 @@ func (s Service) GetProjectByID(request GetProjectByIDRequest) (entity.Project, 
 
 	project, err := s.repo.FindProjectByID(request.ProjectID)
 	if err != nil {
-		fmt.Errorf("something unexpected happend")
-		return project, err
+		
+		return project, fmt.Errorf("something unexpected happend")
 	}
 
 	return project, nil

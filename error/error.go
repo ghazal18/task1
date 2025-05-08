@@ -9,6 +9,7 @@ var (
 	ErrForbidden            = errors.New("forbidden")
 	ErrUnauthorized         = errors.New("unauthorized")
 	ErrUserAlreadyExists    = errors.New("user already exists")
+	ErrProjectAlreadyExists = errors.New("project already exists")
 	ErrInvalidCredentials   = errors.New("invalid email or password")
 	ErrProjectNotFound      = errors.New("project not found")
 	ErrNotProjectOwner      = errors.New("only the project owner can perform this action")

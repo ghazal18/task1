@@ -62,12 +62,12 @@ func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, error) {
 	projectSocial := p.SocialLinks
 
 	_, err := d.DB.Query(&p, projectQuery, projectOwner, projectName, projectCompany, projectDesc, projectSocial)
-	
+
 	if err != nil {
 		pgErr, ok := err.(pg.Error)
 		pgErr.IntegrityViolation()
 		if ok && pgErr.IntegrityViolation() {
-			return p, fmt.Errorf("%w", errormsg.ErrUserAlreadyExists)
+			return p, fmt.Errorf("%w", errormsg.ErrProjectAlreadyExists)
 		}
 		return p, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
@@ -75,28 +75,23 @@ func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, error) {
 
 }
 
-func (d *PostgresDB) AllProject(uID int) (p []entity.Project, b bool, e error) {
+func (d *PostgresDB) AllProject(uID int) (p []entity.Project, e error) {
 
 	projectQuery := `SELECT DISTINCT p.*
     FROM projects p
     LEFT JOIN project_members pm ON p.id = pm.project_id
     WHERE p.owner_id = ? OR pm.user_id = ?;`
 	userId := uID
-	fmt.Println("THIIISS", uID)
 
 	_, err := d.DB.Query(&p, projectQuery, userId, userId)
 	if err != nil {
-		fmt.Errorf("something unexpected happend")
-		return p, false, err
-	}
-	if len(p) == 0 {
-		return p, false, nil
+		return p, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
 
-	return p, true, nil
+	return p, nil
 }
 
-func (d *PostgresDB) AllOtherProject(uID int) (p []entity.Project, b bool, e error) {
+func (d *PostgresDB) AllOtherProject(uID int) (p []entity.Project, e error) {
 
 	projectQuery := `SELECT p.*
 	FROM projects p
@@ -111,14 +106,10 @@ func (d *PostgresDB) AllOtherProject(uID int) (p []entity.Project, b bool, e err
 
 	_, err := d.DB.Query(&p, projectQuery, userId, userId)
 	if err != nil {
-		fmt.Errorf("something unexpected happend")
-		return p, false, err
-	}
-	if len(p) == 0 {
-		return p, false, nil
+		return p, fmt.Errorf("%w",errormsg.ErrInternal)
 	}
 
-	return p, true, nil
+	return p, nil
 }
 
 func (d *PostgresDB) FindProjectByID(pID int) (p entity.Project, e error) {

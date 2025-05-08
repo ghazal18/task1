@@ -141,29 +141,25 @@ func (s Server) GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 
 	claim, err := s.controller.VerifyToken(authToken)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		WriteError(w, 401, "Unauthorized")
 		return
 	}
 
 	req := userservice.AllProjectRequest{
 		ID: claim.UserID,
 	}
-	fmt.Println("claim.UserID", claim.UserID)
-
-	p, exist, err := s.userSvc.GetAllProject(req)
-	if !exist {
-		noProject := "You should create or join project first"
-		w.Write([]byte(noProject))
+	p, err := s.userSvc.GetAllProject(req)
+	
+	if err != nil {
+		WriteError(w, 400, err.Error())
 		return
 	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
 	jsonProject, err := json.Marshal(p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteError(w, 500, err.Error())
+		return
 	}
+
 
 	w.Write(jsonProject)
 
@@ -174,28 +170,24 @@ func (s Server) GetOtherProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 	claim, err := s.controller.VerifyToken(authToken)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		WriteError(w, 401, "Unauthorized")
 		return
 	}
+
 	req := userservice.AllOtherProjectRequest{
 		ID: claim.UserID,
 	}
 
-	p, exist, err := s.userSvc.GetAllOthersProject(req)
-	if !exist {
-		noProject := "You should create or join project first"
-		w.Write([]byte(noProject))
+	p, err := s.userSvc.GetAllOthersProject(req)
+	if err != nil {
+		WriteError(w, 400, err.Error())
 		return
 	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
 	jsonProject, err := json.Marshal(p)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteError(w, 500, err.Error())
+		return
 	}
-
 	w.Write(jsonProject)
 
 }
