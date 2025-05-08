@@ -67,25 +67,26 @@ func (s Server) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 func (s Server) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+		WriteError(w, 500, "Internal Server Error")
 		return
 	}
 
 	var req userservice.LoginRequest
 	err = json.Unmarshal(data, &req)
 	if err != nil {
-		http.Error(w, "Bad request - Go away!", http.StatusBadRequest)
+		WriteError(w, 400, "Bad Request")
 		return
-
 	}
 	resp, err := s.userSvc.Login(req)
 	if err != nil {
-		http.Error(w, "BadRequest", http.StatusBadRequest)
+		WriteError(w, 400, err.Error())
+		return
 	}
 
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
-		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+		WriteError(w, 500, err.Error())
+		return
 	}
 
 	w.Write(jsonResp)
@@ -98,13 +99,14 @@ func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 	claim, err := s.controller.VerifyToken(authToken)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
+		WriteError(w, 401, "Unauthorized")
 		return
 	}
 
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Print(err)
+		WriteError(w, 500, "Internal Server Error")
+		return
 	}
 
 	Req := userservice.NewProjectRequest{
@@ -112,22 +114,22 @@ func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.Unmarshal(data, &Req)
 	if err != nil {
-		w.Write([]byte(
-			fmt.Sprintf(`{"error": "%s"}`, err.Error()),
-		))
+		WriteError(w, 400, "Bad Request")
+		return
 
 	}
 
 	resp, err := s.userSvc.NewProject(Req, claim.UserID)
 	if err != nil {
-		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+		WriteError(w, 400, err.Error())
+		return
+		
 	}
-	fmt.Println("UNMARSHALLAZED", resp)
 
 	jsonResp, err := json.Marshal(resp)
-	fmt.Println("MARSHALLAZED", string(jsonResp))
 	if err != nil {
-		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+		WriteError(w, 500, err.Error())
+		return
 	}
 
 	w.Write(jsonResp)

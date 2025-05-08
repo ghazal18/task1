@@ -43,13 +43,13 @@ func (d *PostgresDB) GetUser(u entity.User) (entity.User, bool, error) {
 	userPass := u.Password
 	_, err := d.DB.Query(&u, userQuery, userEmail, userPass)
 	if err != nil {
-		fmt.Errorf("Something unexpected happend")
+		return u, false, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
 	if u.ID == 0 {
 		return u, false, nil
-	} else {
-		return u, true, nil
 	}
+	return u, true, nil
+
 }
 
 func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, error) {
@@ -62,10 +62,15 @@ func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, error) {
 	projectSocial := p.SocialLinks
 
 	_, err := d.DB.Query(&p, projectQuery, projectOwner, projectName, projectCompany, projectDesc, projectSocial)
+	
 	if err != nil {
-		fmt.Errorf("something unexpected happend")
+		pgErr, ok := err.(pg.Error)
+		pgErr.IntegrityViolation()
+		if ok && pgErr.IntegrityViolation() {
+			return p, fmt.Errorf("%w", errormsg.ErrUserAlreadyExists)
+		}
+		return p, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
-
 	return p, nil
 
 }

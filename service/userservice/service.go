@@ -98,8 +98,7 @@ func (s Service) Login(req LoginRequest) (*LoginResponse, error) {
 
 	user, exist, err := s.repo.GetUser(user)
 	if err != nil {
-		return nil,fmt.Errorf("this is error")
-
+		return nil,fmt.Errorf("unexpected error: %w", err)
 	}
 	if !exist {
 		return nil, fmt.Errorf("username or password isn't correct")
@@ -143,17 +142,8 @@ type NewProjectResponse struct {
 	SocialLinks map[string]string `pg:"social_links"`
 }
 
-func (s Service) NewProject(req NewProjectRequest, userID int) (NewProjectResponse, error) {
-	// jsonDataSocialLink, _ := json.Marshal(req.SocialLinks)
-	// fmt.Println("New project service", string(jsonDataSocialLink))
-	// pr := entity.Project{
-	// 	Name:        req.Name,
-	// 	Company:     req.Company,
-	// 	OwnerID:     req.ID,
-	// 	Description: req.Description,
-	// 	SocialLinks: string(jsonDataSocialLink),
-	// }
-	// project, err := s.repo.CreateProject(pr)
+func (s Service) NewProject(req NewProjectRequest, userID int) (*NewProjectResponse, error) {
+	
 	pr := entity.Project{
 		Name:        req.Name,
 		Company:     req.Company,
@@ -163,11 +153,10 @@ func (s Service) NewProject(req NewProjectRequest, userID int) (NewProjectRespon
 	}
 	project, err := s.repo.CreateProject(pr)
 	if err != nil {
-		fmt.Errorf("something unexpected happend")
+		return nil , fmt.Errorf("%w",err)
 	}
-	fmt.Println("DUDE", project.SocialLinks)
 
-	return NewProjectResponse{
+	return &NewProjectResponse{
 		ID:          project.ID,
 		OwnerID:     project.OwnerID,
 		Name:        project.Name,
