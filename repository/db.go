@@ -210,9 +210,5 @@ func (d *PostgresDB) IsMember(userID, projectID int) (b bool) {
 
 	d.DB.Query(&pm, query, projectID, userID)
 
-	
-	if pm.ID != 0 {
-		return true
-	}
-	return false
+	return pm.ID != 0
 }

@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"task1/service/userservice"
+	"task1/service/projectservice"
+	
 )
 
 func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,8 +25,9 @@ func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, 500, "Internal Server Error")
 		return
 	}
+	
 
-	Req := userservice.NewProjectRequest{
+	Req := projectservice.NewProjectRequest{
 		ID: claim.UserID,
 	}
 	err = json.Unmarshal(data, &Req)
@@ -35,7 +37,7 @@ func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	resp, err := s.userSvc.NewProject(Req, claim.UserID)
+	resp, err := s.projectSvc.NewProject(Req, claim.UserID)
 	if err != nil {
 		WriteError(w, 400, err.Error())
 		return
@@ -61,10 +63,10 @@ func (s Server) GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := userservice.AllProjectRequest{
+	req := projectservice.AllProjectRequest{
 		ID: claim.UserID,
 	}
-	p, err := s.userSvc.GetAllProject(req)
+	p, err := s.projectSvc.GetAllProject(req)
 
 	if err != nil {
 		WriteError(w, 400, err.Error())
@@ -89,11 +91,11 @@ func (s Server) GetOtherProjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := userservice.AllOtherProjectRequest{
+	req := projectservice.AllOtherProjectRequest{
 		ID: claim.UserID,
 	}
 
-	p, err := s.userSvc.GetAllOthersProject(req)
+	p, err := s.projectSvc.GetAllOthersProject(req)
 	if err != nil {
 		WriteError(w, 400, err.Error())
 		return
@@ -129,11 +131,11 @@ func (s Server) GetProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, 403, "Forbidden")
 		return
 	}
-	req := userservice.GetProjectByIDRequest{
+	req := projectservice.GetProjectByIDRequest{
 		UserID:    claim.UserID,
 		ProjectID: projectId,
 	}
-	p, err := s.userSvc.GetProjectByID(req)
+	p, err := s.projectSvc.GetProjectByID(req)
 	if err != nil {
 		WriteError(w, 400, err.Error())
 		return
@@ -169,7 +171,7 @@ func (s Server) DeleteProjectByIDHandler(w http.ResponseWriter, r *http.Request)
 		WriteError(w, 403, "Forbidden")
 		return
 	}
-	_, affected, err := s.userSvc.DeleteProjectByID(projectId)
+	_, affected, err := s.projectSvc.DeleteProjectByID(projectId)
 	if err != nil {
 		WriteError(w, 400, err.Error())
 		return
@@ -206,12 +208,12 @@ func (s Server) JoinOtherProjectHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	
-	req := userservice.JoinProjectByIDRequest{
+	req := projectservice.JoinProjectByIDRequest{
 		ProjectID: projectIdStr,
 		UserID:    strconv.Itoa(claim.UserID),
 	}
 
-	done, err := s.userSvc.JoinProjectByID(req)
+	done, err := s.projectSvc.JoinProjectByID(req)
 	if err != nil {
 		WriteError(w, 500, err.Error())
 		return
@@ -262,7 +264,7 @@ func (s Server) PutProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var p userservice.PutProjectByIDRequest
+	var p projectservice.PutProjectByIDRequest
 	err = json.Unmarshal(data, &p)
 	if err != nil {
 		WriteError(w, 400, "Bad Request")
@@ -270,7 +272,7 @@ func (s Server) PutProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	
-	res, ok, err := s.userSvc.UpdateProjectByID(projectId, p)
+	res, ok, err := s.projectSvc.UpdateProjectByID(projectId, p)
 	if err != nil {
 		WriteError(w, 500, err.Error())
 		return
