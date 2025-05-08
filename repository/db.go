@@ -2,8 +2,8 @@ package repository
 
 import (
 	"fmt"
-
 	"task1/entity"
+	errormsg "task1/error"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -24,7 +24,14 @@ func New() *PostgresDB {
 
 func (d *PostgresDB) Register(u entity.User) (entity.User, error) {
 	_, err := d.DB.Model(&u).Insert()
-	fmt.Println(err)
+	if err != nil {
+		pgErr, ok := err.(pg.Error)
+		pgErr.IntegrityViolation()
+		if ok && pgErr.IntegrityViolation() {
+			return u, fmt.Errorf("%w", errormsg.ErrUserAlreadyExists)
+		}
+		return u, fmt.Errorf("%w", errormsg.ErrInternal)
+	}
 	return u, nil
 
 }
@@ -46,21 +53,7 @@ func (d *PostgresDB) GetUser(u entity.User) (entity.User, bool, error) {
 }
 
 func (d *PostgresDB) CreateProject(p entity.Project) (entity.Project, error) {
-	/*
-		projectQuery := `Insert into projects(owner_id,name,company,description,social_links) values (?,?,?,?,?) RETURNING id;`
-		projectOwner := p.OwnerID
-		projectName := p.Name
-		projectCompany := p.Company
-		projectDesc := p.Description
-		projectSocial := p.SocialLinks
 
-		_, err := d.DB.Query(&p, projectQuery, projectOwner, projectName, projectCompany, projectDesc, projectSocial)
-		if err != nil {
-			fmt.Errorf("something unexpected happend")
-		}
-
-		return p, nil
-	*/
 	projectQuery := `Insert into projects(owner_id,name,company,description,social_links) values (?,?,?,?,?) RETURNING id;`
 	projectOwner := p.OwnerID
 	projectName := p.Name

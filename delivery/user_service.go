@@ -7,37 +7,57 @@ import (
 	"net/http"
 	"strconv"
 
+	"task1/response"
 	"task1/service/userservice"
+	// errormsg "task1/error"
 )
+
+func WriteError(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(response.ErrorResponse{
+		Error: message,
+	})
+}
 
 func (s Server) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Bad request - Go away!", http.StatusBadRequest)
+		WriteError(w, 500, "Internal Server Error ")
+		return
 	}
 
 	var req userservice.SignUpRequest
 	err = json.Unmarshal(data, &req)
 	if err != nil {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
-	}
-	if err, fieldErrors := s.validator.ValidateRegisterRequest(req); err != nil {
-		errormasage, err := json.Marshal(fieldErrors)
-		if err != nil {
-			fmt.Errorf("can't marshall error")
-		}
-
-		http.Error(w, string(errormasage), http.StatusBadRequest)
+		WriteError(w, 400, "Bad Request")
 		return
 	}
+	fieldErrors, err := s.validator.ValidateRegisterRequest(req)
+	if fieldErrors != nil {
+		if err != nil {
+			WriteError(w, 500, err.Error())
+			return
+		}
+		errormasage, err := json.Marshal(fieldErrors)
+		if err != nil {
+			WriteError(w, 500, err.Error())
+			return
+		}
+		WriteError(w, 500, string(errormasage))
+
+	}
+
 	user, err := s.userSvc.SignUp(req)
 	if err != nil {
-		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+		WriteError(w, 500, err.Error())
+		return
 
 	}
 	jsonUser, err := json.Marshal(user)
 	if err != nil {
-		http.Error(w, "InternalServerError", http.StatusInternalServerError)
+		WriteError(w, 500, err.Error())
+		return
 	}
 
 	w.Write(jsonUser)
@@ -102,10 +122,10 @@ func (s Server) NewProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 	}
-	fmt.Println("UNMARSHALLAZED",resp)
-	
+	fmt.Println("UNMARSHALLAZED", resp)
+
 	jsonResp, err := json.Marshal(resp)
-	fmt.Println("MARSHALLAZED",string(jsonResp))
+	fmt.Println("MARSHALLAZED", string(jsonResp))
 	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 	}
@@ -126,7 +146,7 @@ func (s Server) GetProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	req := userservice.AllProjectRequest{
 		ID: claim.UserID,
 	}
-	fmt.Println("claim.UserID",claim.UserID)
+	fmt.Println("claim.UserID", claim.UserID)
 
 	p, exist, err := s.userSvc.GetAllProject(req)
 	if !exist {
@@ -263,7 +283,6 @@ func (s Server) DeleteProjectByIDHandler(w http.ResponseWriter, r *http.Request)
 
 }
 
-
 func (s Server) JoinOtherProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 	authToken := r.Header.Get("Authorization")
@@ -281,7 +300,7 @@ func (s Server) JoinOtherProjectHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	done, err := s.userSvc.JoinProjectByID(req)
-	if err!= nil {
+	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
 
 	}
@@ -289,9 +308,7 @@ func (s Server) JoinOtherProjectHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "couldnt Join this project", http.StatusBadRequest)
 		return
 	}
-	res := userservice.Response{
-		Message: "YOU join the project",
-	}
+	res := "YOU join the project"
 	jsonRes, err := json.Marshal(res)
 	if err != nil {
 		http.Error(w, "InternalServerError", http.StatusInternalServerError)
@@ -300,13 +317,9 @@ func (s Server) JoinOtherProjectHandler(w http.ResponseWriter, r *http.Request) 
 
 	w.Write(jsonRes)
 
-
 }
 
-
-
 func (s Server) PutProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
-
 
 	authToken := r.Header.Get("Authorization")
 
@@ -323,7 +336,6 @@ func (s Server) PutProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	
 	can := s.acl.CanEditProject(claim.UserID, projectId)
 
 	if !can {
@@ -331,7 +343,7 @@ func (s Server) PutProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	
+
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Bad request - Go away!", http.StatusBadRequest)
@@ -343,8 +355,8 @@ func (s Server) PutProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	fmt.Println(p)
-	res , ok , err := s.userSvc.UpdateProjectByID(projectIdStr,p)
-	if err!= nil {
+	res, ok, err := s.userSvc.UpdateProjectByID(projectIdStr, p)
+	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 
 	}
@@ -359,7 +371,5 @@ func (s Server) PutProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(jsonRes)
-
-
 
 }

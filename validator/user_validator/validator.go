@@ -17,7 +17,7 @@ func New() Validator {
 
 	return Validator{}
 }
-func (v Validator) ValidateRegisterRequest(req userservice.SignUpRequest) (error, map[string]string) {
+func (v Validator) ValidateRegisterRequest(req userservice.SignUpRequest) (map[string]string, error) {
 
 	if err := validation.ValidateStruct(&req,
 		validation.Field(&req.Email, validation.Required, is.Email),
@@ -36,7 +36,8 @@ func (v Validator) ValidateRegisterRequest(req userservice.SignUpRequest) (error
 				}
 			}
 		}
-		return fmt.Errorf("Invalid Input"), fieldErrors
+
+		return fieldErrors, fmt.Errorf("invalid Input: %w",err)
 	}
 
 	return nil, nil

@@ -3,7 +3,6 @@ package userservice
 import (
 	"crypto/md5"
 	"encoding/hex"
-//	"encoding/json"
 	"fmt"
 	"strconv"
 	"task1/entity"
@@ -44,9 +43,7 @@ type Token struct {
 	AccessToken string `json:"access_token"`
 }
 
-type Response struct {
-	Message string `json:"message"`
-}
+
 
 type SignUpRequest struct {
 	Email    string `json:"email"`
@@ -58,7 +55,7 @@ type SignUpResponse struct {
 	Email string `json:"email"`
 }
 
-func (s Service) SignUp(req SignUpRequest) (SignUpResponse, error) {
+func (s Service) SignUp(req SignUpRequest) (*SignUpResponse, error) {
 	var resp SignUpResponse
 
 	user := entity.User{
@@ -66,12 +63,15 @@ func (s Service) SignUp(req SignUpRequest) (SignUpResponse, error) {
 		Password: getMD5Hash(req.Password),
 	}
 
-	user, _ = s.repo.Register(user)
+	user, err := s.repo.Register(user)
+	if err != nil {
+		return nil, fmt.Errorf("%w",err)
+	}
 	resp = SignUpResponse{
 		ID:    user.ID,
 		Email: user.Email,
 	}
-	return resp, nil
+	return &resp, nil
 
 }
 
@@ -81,15 +81,15 @@ type LoginRequest struct {
 }
 
 type LoginUserResponse struct {
-	ID int `json:"id"`
-	Email    string `json:"email"`
+	ID    int    `json:"id"`
+	Email string `json:"email"`
 }
 type LoginResponse struct {
 	User   LoginUserResponse `json:"user"`
-	Tokens Token       `json:"tokens"`
+	Tokens Token             `json:"tokens"`
 }
 
-func (s Service) Login(req LoginRequest) (LoginResponse, error) {
+func (s Service) Login(req LoginRequest) (*LoginResponse, error) {
 
 	user := entity.User{
 		Email:    req.Email,
@@ -98,25 +98,26 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 
 	user, exist, err := s.repo.GetUser(user)
 	if err != nil {
-		return LoginResponse{}, fmt.Errorf("something unexpected happend")
+		return nil,fmt.Errorf("this is error")
+
 	}
 	if !exist {
-		return LoginResponse{}, fmt.Errorf("username or password isn't correct")
+		return nil, fmt.Errorf("username or password isn't correct")
 	}
 	if user.Password != getMD5Hash(req.Password) {
-	
-		return LoginResponse{}, fmt.Errorf("username or password isn't correct")
+
+		return nil, fmt.Errorf("username or password isn't correct")
 	}
 
 	accessToken, err := s.auth.CreateAccessToken(user)
 	if err != nil {
-		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
+		return nil, fmt.Errorf("unexpected error: %w", err)
 	}
 
-	return LoginResponse{
+	return &LoginResponse{
 		User: LoginUserResponse{
-			ID:       user.ID,
-			Email:    user.Email,
+			ID:    user.ID,
+			Email: user.Email,
 		},
 		Tokens: Token{
 			AccessToken: accessToken,
@@ -126,19 +127,19 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 }
 
 type NewProjectRequest struct {
-	ID          int    `pg:"id"`
-	Name        string `json:"name"`
-	Company     string `json:"company"`
-	Description string `json:"description"`
+	ID          int               `pg:"id"`
+	Name        string            `json:"name"`
+	Company     string            `json:"company"`
+	Description string            `json:"description"`
 	SocialLinks map[string]string `json:"social_links"`
 }
 
 type NewProjectResponse struct {
-	ID          int    `pg:"id"`
-	OwnerID     int    `pg:"owner_id"`
-	Name        string `pg:"name"`
-	Company     string `pg:"company"`
-	Description string `pg:"description"`
+	ID          int               `pg:"id"`
+	OwnerID     int               `pg:"owner_id"`
+	Name        string            `pg:"name"`
+	Company     string            `pg:"company"`
+	Description string            `pg:"description"`
 	SocialLinks map[string]string `pg:"social_links"`
 }
 
@@ -265,10 +266,10 @@ func (s Service) UpdateProjectByID(pID string, p PutProjectByIDRequest) (PutProj
 	}
 
 	project, ok, err := s.repo.UpdateProjectByID(project)
-	
+
 	resp := PutProjectByIDRespons{
-		Name: p.Name,
-		Company: p.Company,
+		Name:        p.Name,
+		Company:     p.Company,
 		Description: p.Description,
 		SocialLinks: p.SocialLinks,
 	}
@@ -277,18 +278,18 @@ func (s Service) UpdateProjectByID(pID string, p PutProjectByIDRequest) (PutProj
 }
 
 type PutProjectByIDRequest struct {
-	ID          int    `json:"id"`
-	OwnerID     int    `json:"owner_id"`
-	Name        string `json:"name"`
-	Company     string `json:"company"`
-	Description string `json:"description"`
+	ID          int               `json:"id"`
+	OwnerID     int               `json:"owner_id"`
+	Name        string            `json:"name"`
+	Company     string            `json:"company"`
+	Description string            `json:"description"`
 	SocialLinks map[string]string `json:"social_links"`
 }
 
 type PutProjectByIDRespons struct {
-	Name        string `json:"name"`
-	Company     string `json:"company"`
-	Description string `json:"description"`
+	Name        string            `json:"name"`
+	Company     string            `json:"company"`
+	Description string            `json:"description"`
 	SocialLinks map[string]string `json:"social_links"`
 }
 
