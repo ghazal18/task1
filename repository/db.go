@@ -180,10 +180,19 @@ func (d *PostgresDB) JoinProjectByID(pID, uID string) (bool, error) {
 	var pm entity.ProjectMembers
 
 	projectMemberQuery := ` insert into project_members(project_id,user_id) values (?,?)`
+
 	_, err := d.DB.Query(&pm, projectMemberQuery, pID, uID)
 	if err != nil {
+		fmt.Println("JoinProjectByID",err)
+		pgErr, ok := err.(pg.Error)
+		
+		if ok && pgErr.IntegrityViolation() {
+			return false, errormsg.ErrAlreadyProjectMember
+		}
+		
 		return false, fmt.Errorf("%w", errormsg.ErrInternal)
 	}
+
 
 	return true, nil
 
@@ -196,7 +205,6 @@ func (d *PostgresDB) IsOwner(userID, projectID int) (b bool) {
 	query := `SELECT * FROM projects WHERE id = ? ;`
 	d.DB.Query(&p, query, projectID)
 
-	
 	fmt.Println("ownerID == userID", p.OwnerID, userID, p.OwnerID == userID, projectID)
 	return p.OwnerID == userID
 }
@@ -208,7 +216,7 @@ func (d *PostgresDB) IsMember(userID, projectID int) (b bool) {
 	query := `SELECT * FROM project_members 
 	 	WHERE project_id = ? AND user_id = ?;`
 
-	d.DB.Query(&pm, query, projectID, userID)
-
-	return pm.ID != 0
+	res , _ := d.DB.Query(&pm, query, projectID, userID)
+	
+	return res.RowsReturned() == 1
 }
