@@ -4,7 +4,7 @@ import (
 	"strings"
 	"task1/entity"
 	"time"
-	"fmt"
+	
 
 	jwt "github.com/golang-jwt/jwt/v4"
 )
@@ -62,7 +62,7 @@ func (s Service) VerifyToken(bearerToken string) (*Claims, error) {
 	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		fmt.Printf("userId: %v, expire at :%v", claims.UserID, claims.RegisteredClaims.ExpiresAt)
+		//fmt.Printf("userId: %v, expire at :%v", claims.UserID, claims.RegisteredClaims.ExpiresAt)
 		return claims, nil
 	} else {
 		return nil, err

@@ -3,6 +3,7 @@ package delivery
 import (
 	"net/http"
 	"task1/controller"
+	"task1/service/projectservice"
 	"task1/service/userservice"
 	uservalidator "task1/validator/user_validator"
 
@@ -11,16 +12,19 @@ import (
 
 type Server struct {
 	userSvc    userservice.Service
+	projectSvc projectservice.Service
 	controller controller.Service
 	acl        userservice.ACLGenerator
 	validator  uservalidator.Validator
 }
 
-func New(userSvc userservice.Service, control controller.Service, acl userservice.ACLGenerator, validator uservalidator.Validator) Server {
+func New(userSvc userservice.Service, control controller.Service, acl userservice.ACLGenerator, validator uservalidator.Validator,projectSvc projectservice.Service) Server {
 	return Server{userSvc: userSvc,
+		projectSvc: projectSvc,
 		controller: control,
 		acl:        acl,
-		validator:  validator}
+		validator:  validator,
+	}
 }
 
 func (s Server) Serve() {
